@@ -1,7 +1,7 @@
 import { DEG } from '../core/math.js';
 import { W, H } from '../core/draw.js';
 import { dip, refraction, horizonDistance } from '../core/astro.js';
-import { dm, dmd, fNum } from '../core/format.js';
+import { dm, dmd, fNum, fDist } from '../core/format.js';
 
 // Vista lateral, no a escala: la depresión y la refracción se exageran para que se vean.
 
@@ -121,7 +121,7 @@ export default {
     }
   },
 
-  compute(p) {
+  compute(p, o, ctx = {}) {
     const dp = dip(p.h);
     const ap = p.ai - dp / 60;
     const R = refraction(ap);
@@ -130,7 +130,7 @@ export default {
       ['Altura aparente (ai − dp)', dmd(ap)],
       ['Refracción media', `${fNum(R, 1)}′`],
       ['Altura verdadera de una estrella', dmd(ap - R / 60)],
-      ['Distancia al horizonte de la mar', `${fNum(horizonDistance(p.h), 1)} millas aprox.`],
+      ['Distancia al horizonte de la mar', `${fDist(horizonDistance(p.h), ctx.dist)} aprox.`],
     ];
   },
 };

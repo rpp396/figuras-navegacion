@@ -93,6 +93,7 @@ export class Fig {
     this.arrows = style.arrows !== false;
     this.curved = !!style.curved;
     this.N = NOTATION[style.notation] || NOTATION.intl;
+    this.dist = style.dist === 'km' ? 'km' : 'mi';
     this.reveal = reveal;
     this.idp = idPrefix;
     this.cur = 0;

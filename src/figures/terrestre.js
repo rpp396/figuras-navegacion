@@ -1,5 +1,5 @@
 import { Y, arc, small, mul, geo } from '../core/math.js';
-import { dm, fLat, fLon } from '../core/format.js';
+import { dm, fLat, fLon, fDist } from '../core/format.js';
 
 export default {
   id: 'terrestre',
@@ -84,12 +84,12 @@ export default {
     }
   },
 
-  compute(p) {
+  compute(p, o, ctx = {}) {
     return [
       ['Latitud', fLat(p.lat)],
       ['Longitud', fLon(p.lon)],
       ['Colatitud (90° − latitud)', dm(90 - Math.abs(p.lat))],
-      ['Distancia al ecuador', `${Math.round(Math.abs(p.lat) * 60)} millas`],
+      ['Distancia al ecuador', fDist(Math.abs(p.lat) * 60, ctx.dist, 0)],
     ];
   },
 };

@@ -239,6 +239,7 @@ function buildAspect() {
   seg('Tipo de letra', 'font', [['serif', 'Clásica, de libro'], ['sans', 'Sin remates']]);
   seg('Rótulos de los arcos', 'words', [[false, 'Símbolos (a, Z, φ…)'], [true, 'Palabras (Altura, Azimut…)']]);
   seg('Notación de los símbolos', 'notation', [['intl', 'φ λ δ t'], ['esp', 'l L d hL (española)']], true);
+  seg('Distancias', 'dist', [['mi', 'Millas'], ['km', 'Kilómetros']]);
   for (const [key, label] of [['labels', 'Mostrar rótulos'], ['values', 'Mostrar valores en grados'], ['curved', 'Rótulos que siguen las curvas'], ['arrows', 'Flechas en los arcos'], ['hidden', 'Líneas ocultas a trazos']]) {
     A.appendChild(checkRow(label, st[key], (c) => change(() => { st[key] = c; })));
   }
@@ -253,7 +254,7 @@ function buildPanes() {
 
 function updateDatos() {
   const pane = $('pane-datos'), f = fig(), s = fst();
-  const rows = f.compute ? f.compute(s.params, s.opts) : [];
+  const rows = f.compute ? f.compute(s.params, s.opts, { dist: state.style.dist }) : [];
   const html = `<table class="datos"><tbody>${rows.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table>
     <div class="row-actions"><button type="button" class="btn quiet" id="bCopy">Copiar los datos</button></div>
     <p class="help">Cálculos hechos con los valores de la figura, útiles para comprobar el texto del libro. No sustituyen al almanaque ni a las tablas.</p>`;
@@ -330,7 +331,10 @@ function buildAnimPane() {
       const d = f.params.find((p) => p.k === sel.value);
       a.param = d.k; a.from = d.min; a.to = d.max; commit(); buildAnimPane();
     });
-    const num = (inp, key) => inp.addEventListener('input', () => { const v = parseFloat(inp.value); if (Number.isFinite(v)) { a[key] = v; commit(); } });
+    // La sugerencia que coincide con la animación actual queda resaltada.
+    const presBtns = [];
+    const markPreset = () => presBtns.forEach(([b, pa]) => b.setAttribute('aria-pressed', String(pa.param === a.param && pa.from === a.from && pa.to === a.to)));
+    const num = (inp, key) => inp.addEventListener('input', () => { const v = parseFloat(inp.value); if (Number.isFinite(v)) { a[key] = v; commit(); markPreset(); } });
     num(fr, 'from'); num(to, 'to');
     if (f.animations?.length) {
       const pres = el('div', 'seg');
@@ -339,8 +343,10 @@ function buildAnimPane() {
         const b = el('button', null, esc(pa.label));
         b.type = 'button';
         b.addEventListener('click', () => { Object.assign(a, { param: pa.param, from: pa.from, to: pa.to }); commit(); buildAnimPane(); });
+        presBtns.push([b, pa]);
         pres.appendChild(b);
       }
+      markPreset();
       const wrap = el('div', 'field');
       wrap.appendChild(el('span', 'sublabel', 'Sugerencias'));
       wrap.appendChild(pres);

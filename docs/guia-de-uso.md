@@ -41,6 +41,8 @@ Marca o desmarca lo que quieres que aparezca: rejillas, líneas auxiliares, somb
 - **Impresión:** en color o en blanco y negro (para imprenta sin color).
 - **Rótulos de los arcos:** símbolos (a, Z, φ…) o palabras (Altura, Azimut…).
 - **Notación:** internacional (φ, λ, δ, t) o española (l, L, d, hL).
+- **Distancias:** en millas náuticas o en kilómetros (1 milla = 1,852 km). En la recta de altura la
+  plantilla sigue en millas, porque 1′ de altura es 1 milla; la escala indica también los kilómetros.
 - **Rótulos que siguen las curvas:** el texto se curva junto al arco, como en muchos libros.
 
 ## 5. Pie de figura
@@ -78,7 +80,7 @@ En la pestaña «Animación y vídeo» elige qué se anima:
 - **Construir la figura paso a paso:** los arcos crecen y los rótulos aparecen en orden.
 - **Girar la esfera:** una vuelta completa.
 - **Cambiar un valor:** por ejemplo, el horario en el movimiento diurno muestra la estrella
-  recorriendo el cielo en un día. Hay sugerencias para cada figura.
+  recorriendo el cielo en un día. Hay sugerencias para cada figura; la elegida queda resaltada.
 
 «Reproducir» la muestra en pantalla. «Grabar vídeo» la graba mientras se reproduce (tarda lo
 mismo que la animación) y luego ofrece el archivo MP4 o WebM.
