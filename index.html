@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Figuras de navegación astronómica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+<!--APP-->
+<header class="top">
+  <h1>Figuras de navegación astronómica</h1>
+  <p>Coordenadas terrestres y celestes para ilustrar libros y clases</p>
+</header>
+<main class="layout">
+  <div class="panel">
+    <section class="step" aria-labelledby="h1-fig">
+      <h2 id="h1-fig"><span class="n">1</span>Elige la figura</h2>
+      <div id="picker"></div>
+      <p class="figdesc" id="figdesc"></p>
+    </section>
+    <section class="step" aria-labelledby="h1-val">
+      <h2 id="h1-val"><span class="n">2</span>Ajusta los valores</h2>
+      <div id="params"></div>
+    </section>
+    <section class="step" aria-labelledby="h1-opt">
+      <h2 id="h1-opt"><span class="n">3</span>Qué se ve en la figura</h2>
+      <div id="opts"></div>
+      <details id="txtbox">
+        <summary>Cambiar el texto de los rótulos</summary>
+        <p class="help">Escribe el texto que prefieras. Si dejas una casilla vacía se usa el texto automático.</p>
+        <div id="txtlist"></div>
+      </details>
+    </section>
+    <section class="step" aria-labelledby="h1-asp">
+      <h2 id="h1-asp"><span class="n">4</span>Aspecto</h2>
+      <div id="aspect"></div>
+    </section>
+    <section class="step" aria-labelledby="h1-cap">
+      <h2 id="h1-cap"><span class="n">5</span>Pie de figura</h2>
+      <label class="flabel" for="caption">Texto bajo la figura</label>
+      <input type="text" id="caption">
+      <p class="help">Déjalo en blanco si prefieres poner el pie en el texto del libro.</p>
+    </section>
+  </div>
+
+  <div class="stage">
+    <div class="bar" role="toolbar" aria-label="Descargar y deshacer">
+      <button type="button" class="btn primary" id="bPng">Descargar PNG</button>
+      <select id="pngRes" aria-label="Tamaño del PNG">
+        <option value="2">Normal (1640 px)</option>
+        <option value="3">Alta (2460 px)</option>
+        <option value="5">Imprenta (4100 px)</option>
+      </select>
+      <label class="check"><input type="checkbox" id="pngTr"><span>Fondo transparente</span></label>
+      <button type="button" class="btn" id="bSvg">Descargar SVG</button>
+      <span class="sep"></span>
+      <button type="button" class="btn quiet" id="bUndo" title="Deshacer (Ctrl+Z)">Deshacer</button>
+      <button type="button" class="btn quiet" id="bRedo" title="Rehacer (Ctrl+Mayús+Z)">Rehacer</button>
+      <details class="menu" id="more">
+        <summary class="btn quiet">Más opciones</summary>
+        <div class="menu-list">
+          <button type="button" id="bSaveJson">Guardar los ajustes en un archivo</button>
+          <button type="button" id="bLoadJson">Abrir ajustes guardados</button>
+          <button type="button" id="bLabels">Recolocar los rótulos</button>
+          <button type="button" id="bReset">Valores iniciales de esta figura</button>
+        </div>
+      </details>
+      <input type="file" id="fileJson" accept=".json,application/json" hidden>
+    </div>
+    <div class="sheet" id="sheet"></div>
+    <p class="hint" id="hint"></p>
+    <div class="tabs" role="tablist" aria-label="Más herramientas">
+      <button type="button" role="tab" id="tab-datos" aria-controls="pane-datos">Datos calculados</button>
+      <button type="button" role="tab" id="tab-pasos" aria-controls="pane-pasos">Paso a paso</button>
+      <button type="button" role="tab" id="tab-anim" aria-controls="pane-anim">Animación y vídeo</button>
+    </div>
+    <div class="pane" id="pane-datos" role="tabpanel" aria-labelledby="tab-datos"></div>
+    <div class="pane" id="pane-pasos" role="tabpanel" aria-labelledby="tab-pasos" hidden></div>
+    <div class="pane" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" hidden></div>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!--/APP-->
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
