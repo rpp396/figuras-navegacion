@@ -32,6 +32,19 @@ export const fLon = (x) => dm(x) + (Math.abs(x) < 1 / 120 || Math.abs(x) > 179.9
 /** Número con coma decimal y signo menos tipográfico. */
 export const fNum = (x, d = 1) => x.toFixed(d).replace('.', ',').replace('-', MINUS);
 
+/** Kilómetros por milla náutica. */
+export const KM_PER_MILE = 1.852;
+
+/**
+ * Distancia dada en millas náuticas, en la unidad elegida ('mi' | 'km'):
+ * fDist(12.3) → "12,3 millas"; fDist(12.3, 'km') → "22,8 km". Con 0 decimales, "1 milla".
+ */
+export function fDist(millas, unit = 'mi', d = 1) {
+  if (unit === 'km') return `${fNum(millas * KM_PER_MILE, d)} km`;
+  const t = fNum(millas, d);
+  return `${t} ${t === '1' ? 'milla' : 'millas'}`;
+}
+
 /** Minutos de arco con signo explícito: 6 → "+6,0′". */
 export const fMinSigned = (x) => (x >= 0 ? '+' : MINUS) + fNum(Math.abs(x), 1) + '′';
 

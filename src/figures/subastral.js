@@ -1,7 +1,7 @@
 import { Y, arc, small, gc, geo, offsetOnSphere, clamp } from '../core/math.js';
 import { CX, CY, R, W, H } from '../core/draw.js';
 import { subastral } from '../core/astro.js';
-import { dm, fLat, fLon } from '../core/format.js';
+import { dm, fLat, fLon, fDist } from '../core/format.js';
 
 export default {
   id: 'subastral',
@@ -95,27 +95,29 @@ export default {
       F.step(4, 'Un observador sobre el círculo');
       if (o.radio) {
         F.curve(gc(G, O), 't1', { dash: true });
-        const txt = F.vals ? `${N.zd} = ${dm(z)} = ${Math.round(z * 60)} millas` : `${N.zd} = 90° − ${N.alt}`;
+        const txt = F.vals ? `${N.zd} = ${dm(z)} = ${fDist(z * 60, F.dist, 0)}` : `${N.zd} = 90° − ${N.alt}`;
         // Rótulo a un lado del radio, por la parte de fuera de las coordenadas.
         const a = F.P(G), b = F.P(O), mid = F.P(offsetOnSphere(G, z / 2, bear));
         let nx = -(b[1] - a[1]), ny = b[0] - a[0];
         const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
         if (nx < 0) { nx = -nx; ny = -ny; }
-        F.place('radio', F.words ? `Distancia cenital ${dm(z)} (${Math.round(z * 60)} millas)` : txt, mid, nx, ny, 10, { col: F.pal.c1, scale: 0.85 });
+        F.place('radio', F.words ? `Distancia cenital ${dm(z)} (${fDist(z * 60, F.dist, 0)})` : txt, mid, nx, ny, 10, { col: F.pal.c1, scale: 0.85 });
       }
       F.dot(O, F.pal.ink, 5.5);
       F.labR('obs', F.vals ? `Observador: ${N.alt} = ${dm(alt)}` : 'Observador', O, 14, { scale: 0.9 });
     }
   },
 
-  compute(p) {
+  compute(p, o, ctx = {}) {
     const g = subastral(p.dec, p.gha);
     const z = 90 - p.alt;
     return [
       ['Latitud del punto subastral', fLat(g.lat)],
       ['Longitud del punto subastral', fLon(g.lon)],
       ['Distancia cenital (radio)', dm(z)],
-      ['Radio en millas (1′ = 1 milla)', `${Math.round(z * 60)} millas`],
+      ctx.dist === 'km'
+        ? ['Radio en kilómetros (1′ = 1 milla = 1,852 km)', fDist(z * 60, 'km', 0)]
+        : ['Radio en millas (1′ = 1 milla)', fDist(z * 60, 'mi', 0)],
       ['Altura medida en todo el círculo', dm(p.alt)],
     ];
   },

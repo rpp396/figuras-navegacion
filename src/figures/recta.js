@@ -1,7 +1,7 @@
 import { DEG } from '../core/math.js';
 import { CX, CY, W, H } from '../core/draw.js';
 import { fixFromTwoLines } from '../core/astro.js';
-import { fAz3, fNum, fMinSigned } from '../core/format.js';
+import { fAz3, fNum, fMinSigned, fDist, KM_PER_MILE } from '../core/format.js';
 
 // Plantilla de trazado: norte arriba, 1 milla = K píxeles. Situación de estima en el centro.
 const K = 12;
@@ -98,7 +98,7 @@ export default {
       F.path([[40, H - 70], [40 + 5 * K, H - 70]], 'ink');
       F.path([[40, H - 76], [40, H - 64]], 'ink');
       F.path([[40 + 5 * K, H - 76], [40 + 5 * K, H - 64]], 'ink');
-      F.lab('escala', '5 millas', 40 + 5 * K + 10, H - 64, { anchor: 'start', scale: 0.8 });
+      F.lab('escala', F.dist === 'km' ? `5 millas (${fNum(5 * KM_PER_MILE, 1)} km)` : '5 millas', 40 + 5 * K + 10, H - 64, { anchor: 'start', scale: 0.8 });
     }
     F.raw(`<circle cx="${CX}" cy="${CY}" r="7" fill="${F.pal.paper}" stroke="${F.pal.ink}" stroke-width="2"/><circle cx="${CX}" cy="${CY}" r="2" fill="${F.pal.ink}"/>`);
     F.place('se', F.words ? 'Situación de estima' : 'Se', C, -0.7, 0.7, 14, { bold: true });
@@ -124,18 +124,19 @@ export default {
     }
   },
 
-  compute(p, o = {}) {
+  compute(p, o = {}, ctx = {}) {
+    const D = (x) => fDist(x, ctx.dist);
     const rows = [
       ['Azimut', fAz3(p.Z1)],
-      ['Diferencia de alturas', `${fMinSigned(p.d1)} = ${fNum(Math.abs(p.d1), 1)} millas ${p.d1 >= 0 ? 'hacia el astro' : 'alejándose del astro'}`],
+      ['Diferencia de alturas', `${fMinSigned(p.d1)} = ${D(Math.abs(p.d1))} ${p.d1 >= 0 ? 'hacia el astro' : 'alejándose del astro'}`],
     ];
     if (o.dos) {
       const fx = fixFromTwoLines(p.Z1, p.d1, p.Z2, p.d2);
       if (fx) {
         const dist = Math.hypot(fx.e, fx.n);
         const rumbo = (Math.atan2(fx.e, fx.n) / DEG + 360) % 360;
-        rows.push(['Situación observada', `${fNum(Math.abs(fx.n), 1)} millas al ${fx.n >= 0 ? 'N' : 'S'} y ${fNum(Math.abs(fx.e), 1)} millas al ${fx.e >= 0 ? 'E' : 'W'} de la estima`]);
-        rows.push(['Desde la estima', `${fNum(dist, 1)} millas al ${fAz3(rumbo)}`]);
+        rows.push(['Situación observada', `${D(Math.abs(fx.n))} al ${fx.n >= 0 ? 'N' : 'S'} y ${D(Math.abs(fx.e))} al ${fx.e >= 0 ? 'E' : 'W'} de la estima`]);
+        rows.push(['Desde la estima', `${D(dist)} al ${fAz3(rumbo)}`]);
       } else rows.push(['Situación observada', 'Las dos rectas son paralelas: no se cortan']);
     }
     return rows;

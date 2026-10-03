@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dm, dmd, fLat, fLon, fAz3, fHours, fDate, dayIndex, dateFromIndex, fMinSigned } from '../src/core/format.js';
+import { dm, dmd, fLat, fLon, fAz3, fHours, fDate, dayIndex, dateFromIndex, fMinSigned, fDist } from '../src/core/format.js';
 
 test('grados y minutos', () => {
   assert.equal(dm(40.5), '40° 30′');
@@ -28,4 +28,11 @@ test('horas y fechas', () => {
   assert.equal(fHours(58), '3 h 52 min');
   assert.equal(fDate(dateFromIndex(140)), '21 de mayo');
   assert.equal(dayIndex(4, 21), 140);
+});
+
+test('distancias en millas o kilómetros', () => {
+  assert.equal(fDist(12.3), '12,3 millas');
+  assert.equal(fDist(12.3, 'km'), '22,8 km');
+  assert.equal(fDist(1, 'mi', 0), '1 milla');
+  assert.equal(fDist(600, 'km', 0), '1111 km');
 });

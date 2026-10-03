@@ -10,6 +10,7 @@ export const DEFAULT_STYLE = {
   weight: 'n', // 'f' | 'n' | 'g'
   font: 'serif', // 'serif' | 'sans'
   notation: 'intl', // 'intl' | 'esp'
+  dist: 'mi', // 'mi' (millas náuticas) | 'km'
   labels: true,
   values: true,
   words: false,
@@ -21,6 +22,7 @@ export const DEFAULT_STYLE = {
 
 const STYLE_CHOICES = {
   mode: ['color', 'bn'], size: ['s', 'm', 'l'], weight: ['f', 'n', 'g'], font: ['serif', 'sans'], notation: ['intl', 'esp'],
+  dist: ['mi', 'km'],
 };
 
 export const ASTRO_TYPES = ['sol', 'estrella', 'punto'];

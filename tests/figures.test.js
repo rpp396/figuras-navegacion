@@ -45,14 +45,14 @@ for (const f of FIGURES) {
         ...DEFAULT_STYLE,
         mode: rand() > 0.5 ? 'bn' : 'color',
         words: rand() > 0.5, values: rand() > 0.3, curved: rand() > 0.5,
-        notation: rand() > 0.5 ? 'esp' : 'intl', size: ['s', 'm', 'l'][i % 3], weight: ['f', 'n', 'g'][i % 3],
+        notation: rand() > 0.5 ? 'esp' : 'intl', dist: rand() > 0.5 ? 'km' : 'mi', size: ['s', 'm', 'l'][i % 3], weight: ['f', 'n', 'g'][i % 3],
       };
       const r = renderFigure(f, fs, style);
       const bad = r.svg.match(BAD);
       assert.equal(bad, null, `${f.id}: ${bad && r.svg.slice(Math.max(0, bad.index - 60), bad.index + 40)}`);
       assert.ok(r.steps.length >= 2, `${f.id}: al menos 2 pasos`);
       assert.deepEqual(r.steps.map((s) => s.n), r.steps.map((_, j) => j + 1), `${f.id}: pasos numerados sin huecos`);
-      const rows = f.compute(fs.params, fs.opts);
+      const rows = f.compute(fs.params, fs.opts, { dist: style.dist });
       for (const [k, v] of rows) assert.ok(typeof k === 'string' && typeof v === 'string' && !BAD.test(v), `${f.id}: dato roto ${k}=${v}`);
     }
   });
