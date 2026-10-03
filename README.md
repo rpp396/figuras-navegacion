@@ -34,8 +34,7 @@ La [guía de uso](docs/guia-de-uso.md) lo explica paso a paso.
 
 ## Usarla
 
-- **En internet:** una vez creado el repositorio y activado GitHub Pages (ver abajo), la
-  aplicación queda en `https://TU-USUARIO.github.io/figuras-navegacion/`.
+- **En internet:** <https://rpp396.github.io/figuras-navegacion/>
 - **Sin internet:** ejecuta `npm run build` y abre `dist/index.html` con doble clic. Es un único
   archivo que se puede copiar a cualquier ordenador.
 
@@ -53,23 +52,16 @@ npm run examples   # examples/*.svg de cada figura y cada paso
 La estructura del código, las convenciones de geometría y cómo añadir una figura están en
 [CLAUDE.md](CLAUDE.md). El plan y la hoja de ruta, en [PLAN.md](PLAN.md).
 
-## Crear el repositorio
+## Publicación
 
-1. Crea un repositorio vacío en GitHub llamado `figuras-navegacion` (sin README ni licencia).
-2. En la carpeta del proyecto:
+La aplicación se publica en GitHub Pages desde la rama `gh-pages`. Cada vez que se suben cambios
+a `main`, el flujo `Publicar en GitHub Pages` pasa las pruebas, construye la aplicación en un solo
+archivo y deja el resultado en `gh-pages`; GitHub la publica en uno o dos minutos. No hay que
+tocar la rama `gh-pages` a mano.
 
-   ```bash
-   git init
-   git add .
-   git commit -m "Figuras de navegación astronómica 2.0"
-   git branch -M main
-   git remote add origin https://github.com/TU-USUARIO/figuras-navegacion.git
-   git push -u origin main
-   ```
-
-3. En GitHub, ve a **Settings → Pages** y en **Source** elige **GitHub Actions**. Cada vez que
-   subas cambios a `main`, el flujo `Publicar en GitHub Pages` pasa las pruebas, construye la
-   aplicación y la publica.
+En una copia nueva del repositorio, el primer envío a `main` crea la rama `gh-pages`. Si Pages no
+se activa solo, ve a **Settings → Pages** y elige **Deploy from a branch**, rama `gh-pages`,
+carpeta `/ (root)`.
 
 ## Licencia
 

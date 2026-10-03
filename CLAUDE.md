@@ -81,6 +81,12 @@ importaciones se copian, no son vivas). Si algo no se admite, el build falla con
 - Si cambia la forma del estado guardado, sube `STATE_VERSION` en `src/core/state.js` y añade la
   migración en `sanitizeState`, o los ajustes guardados por el usuario se perderán.
 
+## Publicar en GitHub Pages
+
+Automático: al subir a `main`, `.github/workflows/pages.yml` pasa las pruebas, construye y fuerza
+la rama `gh-pages` con `index.html`, `docs/` y `.nojekyll`. Pages publica esa rama en
+<https://rpp396.github.io/figuras-navegacion/>. No edites `gh-pages` a mano.
+
 ## Publicar en claude.ai
 
 `dist/artifact.html` es el contenido de la página sin `<!doctype>`, `<html>`, `<head>` ni `<body>`

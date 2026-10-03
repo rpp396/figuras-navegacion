@@ -1,25 +1,26 @@
 name: Publicar en GitHub Pages
 
+# Pages publica la rama gh-pages. Este flujo pasa las pruebas, construye la aplicación
+# en un solo archivo y deja el resultado en esa rama cada vez que cambia main.
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  construir:
+  publicar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm test
@@ -29,16 +30,15 @@ jobs:
           mkdir -p _site
           cp dist/index.html _site/index.html
           cp -r docs _site/docs
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  publicar:
-    needs: construir
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          touch _site/.nojekyll
+      - name: Subir a la rama gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd _site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publicar la aplicación (${GITHUB_SHA::7})"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
