@@ -1,0 +1,3770 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Figuras de navegación astronómica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Diseño: mesa de cartas. Panel de controles a la izquierda (pasos 1–5, en orden de uso),
+   la hoja de la figura a la derecha, como un papel sobre la mesa.
+   Letra Atkinson Hyperlegible: pensada para leerse bien con poca vista. */
+:root {
+  --bg: #E4EAEE;
+  --panel: #F8FAFB;
+  --ink: #1C2733;
+  --muted: #56687A;
+  --line: #C8D2DA;
+  --accent: #A8316B;
+  --accent-ink: #FFFFFF;
+  --field: #FFFFFF;
+  --soft: #EEF2F5;
+  --paper: #FFFFFF;
+  --shadow: rgba(28, 39, 51, 0.16);
+  --font-ui: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A21; --panel: #18232D; --ink: #E4EAEE; --muted: #9BACBA; --line: #2C3B48;
+    --accent: #E27BAF; --accent-ink: #200A16; --field: #0E161C; --soft: #1F2C37; --shadow: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A21; --panel: #18232D; --ink: #E4EAEE; --muted: #9BACBA; --line: #2C3B48;
+  --accent: #E27BAF; --accent-ink: #200A16; --field: #0E161C; --soft: #1F2C37; --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 1.45;
+}
+.top { padding: 18px 24px 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px; }
+.top h1 { margin: 0; font-size: 1.45rem; letter-spacing: -0.01em; text-wrap: balance; }
+.top p { margin: 0; color: var(--muted); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(330px, 420px) minmax(0, 1fr);
+  gap: 20px;
+  padding: 6px 24px 32px;
+  align-items: start;
+}
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px 18px 18px; min-width: 0; }
+.step { border-top: 1px solid var(--line); padding: 14px 0 6px; }
+.step:first-child { border-top: 0; }
+.step > h2 { font-size: 1.05rem; margin: 4px 0 10px; display: flex; gap: 10px; align-items: center; }
+.step > h2 .n {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-size: 0.95rem; flex: none;
+}
+
+/* Selector de figuras con miniaturas */
+.group { font-size: 0.92rem; color: var(--muted); font-weight: 700; margin: 10px 0 6px; }
+.tpls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tpl {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px;
+  padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); min-width: 0;
+}
+.tpl .thumb { display: block; background: #fff; border-radius: 4px; overflow: hidden; }
+.tpl .thumb svg { display: block; width: 100%; height: auto; }
+.tpl .tname { font-size: 0.86rem; line-height: 1.25; text-wrap: balance; }
+.tpl[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.tpl[aria-pressed="true"] .tname { font-weight: 700; }
+.figdesc { margin: 10px 0 2px; color: var(--muted); }
+
+:is(.tpl, button, input, select, summary, [role="tab"]):focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Campos */
+.field { margin: 0 0 16px; }
+.field.tight { margin-bottom: 8px; }
+.flabel { display: block; font-weight: 700; margin-bottom: 6px; }
+.flabel .sym { font-weight: 400; color: var(--muted); }
+.flabel output { font-weight: 400; color: var(--muted); }
+.dmrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dmrow.spaced { gap: 8px 10px; margin-top: 8px; }
+.dmrow input[type="number"] {
+  width: 76px; font: inherit; font-size: 1.1rem; padding: 8px; min-height: 44px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--field); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.dmrow input.wide { width: 96px; }
+.dmrow .unit { font-size: 1.15rem; }
+.dmrow .suffix { font-size: 0.95rem; color: var(--muted); margin-left: 4px; }
+select, input[type="text"] {
+  font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--field); color: var(--ink); min-height: 44px; max-width: 100%;
+}
+input[type="text"] { width: 100%; }
+input[type="range"] { width: 100%; margin: 10px 0 2px; accent-color: var(--accent); height: 28px; }
+.help { margin: 4px 0 0; color: var(--muted); font-size: 0.88rem; }
+.lead { margin: 0 0 10px; }
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; cursor: pointer; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin-top: 1px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.seg button {
+  font: inherit; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--field); color: var(--ink); cursor: pointer; min-height: 42px; text-align: left;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg button:disabled { opacity: 0.45; cursor: not-allowed; }
+.sublabel { font-weight: 700; margin: 6px 0; display: block; }
+details > summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+
+/* Hoja y barra de herramientas */
+.stage { min-width: 0; }
+@media (min-width: 901px) {
+  /* La hoja sigue a la vista mientras se ajusta el panel; lo de debajo se desplaza dentro. */
+  .stage { position: sticky; top: calc(12px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 24px); overflow-y: auto; padding: 2px 4px 8px; }
+}
+.bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.bar .sep { flex: 1 1 0; }
+.bar .check { padding: 0 6px; align-items: center; }
+.btn {
+  font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); cursor: pointer; min-height: 46px;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.quiet { font-weight: 400; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.menu { position: relative; }
+.menu > summary { list-style: none; display: inline-flex; align-items: center; height: 46px; min-height: 46px; padding: 0 16px; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 280px; max-width: calc(100vw - 32px);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px;
+  box-shadow: 0 8px 24px var(--shadow); display: grid;
+}
+.menu-list button {
+  font: inherit; text-align: left; padding: 10px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer;
+}
+.menu-list button:hover { background: var(--soft); }
+.sheet {
+  background: var(--paper); border-radius: 4px; padding: 10px;
+  box-shadow: 0 1px 2px var(--shadow), 0 10px 30px var(--shadow);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.sheet svg { display: block; width: 100%; height: auto; max-height: calc(100vh - 190px); }
+.sheet [data-lid] { cursor: move; }
+.hint { color: var(--muted); font-size: 0.92rem; margin: 10px 2px 14px; }
+
+/* Pestañas bajo la hoja */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs [role="tab"] {
+  font: inherit; padding: 10px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; min-height: 44px;
+}
+.tabs [role="tab"][aria-selected="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+.pane { background: var(--panel); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; padding: 16px 18px; }
+.datos { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.datos th, .datos td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.datos th { font-weight: 400; color: var(--muted); width: 48%; }
+.datos td { font-weight: 700; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.steps { margin: 0 0 6px; padding-left: 1.6em; display: grid; gap: 4px; }
+.steps button {
+  font: inherit; text-align: left; width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid transparent;
+  background: transparent; color: var(--ink); cursor: pointer;
+}
+.steps button:hover { background: var(--soft); }
+.steps button[aria-pressed="true"] { border-color: var(--accent); font-weight: 700; }
+.btn[aria-pressed="true"] { border-color: var(--accent); }
+progress { width: 100%; height: 10px; accent-color: var(--accent); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; opacity: 0;
+  transition: opacity 0.2s; pointer-events: none; max-width: calc(100vw - 32px); z-index: 10;
+}
+.toast.show { opacity: 1; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); padding: 6px 16px 24px; }
+  .stage { order: -1; }
+  .sheet svg { max-height: none; }
+  .top { padding: 14px 16px 6px; }
+}
+@media (max-width: 420px) {
+  .tpls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu-list { right: auto; left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Figuras de navegación astronómica</h1>
+  <p>Coordenadas terrestres y celestes para ilustrar libros y clases</p>
+</header>
+<main class="layout">
+  <div class="panel">
+    <section class="step" aria-labelledby="h1-fig">
+      <h2 id="h1-fig"><span class="n">1</span>Elige la figura</h2>
+      <div id="picker"></div>
+      <p class="figdesc" id="figdesc"></p>
+    </section>
+    <section class="step" aria-labelledby="h1-val">
+      <h2 id="h1-val"><span class="n">2</span>Ajusta los valores</h2>
+      <div id="params"></div>
+    </section>
+    <section class="step" aria-labelledby="h1-opt">
+      <h2 id="h1-opt"><span class="n">3</span>Qué se ve en la figura</h2>
+      <div id="opts"></div>
+      <details id="txtbox">
+        <summary>Cambiar el texto de los rótulos</summary>
+        <p class="help">Escribe el texto que prefieras. Si dejas una casilla vacía se usa el texto automático.</p>
+        <div id="txtlist"></div>
+      </details>
+    </section>
+    <section class="step" aria-labelledby="h1-asp">
+      <h2 id="h1-asp"><span class="n">4</span>Aspecto</h2>
+      <div id="aspect"></div>
+    </section>
+    <section class="step" aria-labelledby="h1-cap">
+      <h2 id="h1-cap"><span class="n">5</span>Pie de figura</h2>
+      <label class="flabel" for="caption">Texto bajo la figura</label>
+      <input type="text" id="caption">
+      <p class="help">Déjalo en blanco si prefieres poner el pie en el texto del libro.</p>
+    </section>
+  </div>
+
+  <div class="stage">
+    <div class="bar" role="toolbar" aria-label="Descargar y deshacer">
+      <button type="button" class="btn primary" id="bPng">Descargar PNG</button>
+      <select id="pngRes" aria-label="Tamaño del PNG">
+        <option value="2">Normal (1640 px)</option>
+        <option value="3">Alta (2460 px)</option>
+        <option value="5">Imprenta (4100 px)</option>
+      </select>
+      <label class="check"><input type="checkbox" id="pngTr"><span>Fondo transparente</span></label>
+      <button type="button" class="btn" id="bSvg">Descargar SVG</button>
+      <span class="sep"></span>
+      <button type="button" class="btn quiet" id="bUndo" title="Deshacer (Ctrl+Z)">Deshacer</button>
+      <button type="button" class="btn quiet" id="bRedo" title="Rehacer (Ctrl+Mayús+Z)">Rehacer</button>
+      <details class="menu" id="more">
+        <summary class="btn quiet">Más opciones</summary>
+        <div class="menu-list">
+          <button type="button" id="bSaveJson">Guardar los ajustes en un archivo</button>
+          <button type="button" id="bLoadJson">Abrir ajustes guardados</button>
+          <button type="button" id="bLabels">Recolocar los rótulos</button>
+          <button type="button" id="bReset">Valores iniciales de esta figura</button>
+        </div>
+      </details>
+      <input type="file" id="fileJson" accept=".json,application/json" hidden>
+    </div>
+    <div class="sheet" id="sheet"></div>
+    <p class="hint" id="hint"></p>
+    <div class="tabs" role="tablist" aria-label="Más herramientas">
+      <button type="button" role="tab" id="tab-datos" aria-controls="pane-datos">Datos calculados</button>
+      <button type="button" role="tab" id="tab-pasos" aria-controls="pane-pasos">Paso a paso</button>
+      <button type="button" role="tab" id="tab-anim" aria-controls="pane-anim">Animación y vídeo</button>
+    </div>
+    <div class="pane" id="pane-datos" role="tabpanel" aria-labelledby="tab-datos"></div>
+    <div class="pane" id="pane-pasos" role="tabpanel" aria-labelledby="tab-pasos" hidden></div>
+    <div class="pane" id="pane-anim" role="tabpanel" aria-labelledby="tab-anim" hidden></div>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+'use strict';
+// src/core/math.js
+const __m0 = (function () {
+// Geometría básica: ángulos en GRADOS en toda la API pública; vectores como [x, y, z].
+// Ejes del mundo: Y hacia arriba (cénit o polo norte, según la figura).
+
+const DEG = Math.PI / 180;
+
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const mod360 = (x) => ((x % 360) + 360) % 360;
+/** Lleva un ángulo al intervalo [-180, 180). */
+const wrap180 = (x) => mod360(x + 180) - 180;
+const lerp = (a, b, t) => a + (b - a) * t;
+/** Suavizado de entrada y salida (para animaciones). */
+const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+
+const sind = (d) => Math.sin(d * DEG);
+const cosd = (d) => Math.cos(d * DEG);
+
+const Y = [0, 1, 0];
+const ORIGIN = [0, 0, 0];
+
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len = (a) => Math.hypot(a[0], a[1], a[2]);
+const nrm = (a) => mul(a, 1 / (len(a) || 1));
+
+/** Combina dos ejes ortonormales: u·cos(t) + w·sin(t). */
+const rot = (u, w, t) => add(mul(u, cosd(t)), mul(w, sind(t)));
+
+/** Arco de círculo máximo desde u (t0) hasta t1, con w perpendicular a u. */
+function arc(u, w, t0, t1, step = 2) {
+  const n = Math.max(2, Math.ceil(Math.abs(t1 - t0) / step));
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(rot(u, w, t0 + ((t1 - t0) * i) / n));
+  return pts;
+}
+
+/** Arco de círculo máximo entre dos puntos de la esfera. */
+function gc(a, b) {
+  const c = clamp(dot(a, b), -1, 1);
+  const ang = Math.acos(c) / DEG;
+  if (ang < 1e-4) return [a, b];
+  const w = nrm(sub(b, mul(a, c)));
+  return arc(a, w, 0, ang);
+}
+
+/** Círculo menor de radio angular `rad` alrededor del polo n. */
+function small(n, rad, step = 2) {
+  const a = Math.abs(n[1]) < 0.9 ? Y : [1, 0, 0];
+  const u = nrm(cross(n, a));
+  const w = cross(n, u);
+  const c = mul(n, cosd(rad));
+  const s = sind(rad);
+  return arc(u, w, 0, 360, step).map((p) => add(c, mul(p, s)));
+}
+
+/**
+ * Arquito que marca el ángulo esférico en A entre los arcos AB y AC.
+ * r = radio del arquito en grados. Devuelve {pts, mid} o null si el ángulo es casi nulo.
+ */
+function angArc(A, B, C, r) {
+  const t1 = nrm(sub(B, mul(A, dot(A, B))));
+  const t2 = nrm(sub(C, mul(A, dot(A, C))));
+  const c = clamp(dot(t1, t2), -1, 1);
+  const ang = Math.acos(c);
+  if (ang < 0.03) return null;
+  let e2 = sub(t2, mul(t1, c));
+  e2 = len(e2) < 1e-6 ? cross(A, t1) : nrm(e2);
+  const f = (rr, th) => add(mul(A, cosd(rr)), mul(add(mul(t1, Math.cos(th)), mul(e2, Math.sin(th))), sind(rr)));
+  const pts = [];
+  for (let i = 0; i <= 30; i++) pts.push(f(r, (ang * i) / 30));
+  return { pts, mid: f(r * 1.7, ang / 2), angle: ang / DEG };
+}
+
+/** Punto de la esfera terrestre (o ecuatorial) con latitud/declinación `la` y longitud `lo` (E positiva → +x). */
+const geo = (la, lo) => [cosd(la) * sind(lo), sind(la), cosd(la) * cosd(lo)];
+
+/** Punto del horizonte con azimut A (N = -z, E = +x, S = +z, W = -x). */
+const hor = (A) => [sind(A), 0, -cosd(A)];
+
+/** Punto de altura e sobre el vertical de azimut A. */
+const vert = (A, e) => rot(hor(A), Y, e);
+
+/** Base local en un punto G de la esfera: norte y este tangentes. */
+function localFrame(G) {
+  const north = nrm(sub(Y, mul(G, dot(G, Y))));
+  const east = cross(north, G);
+  return { north, east };
+}
+
+/** Punto a distancia angular rho de G, en la dirección del rumbo beta (desde el norte, hacia el este). */
+function offsetOnSphere(G, rho, beta) {
+  const { north, east } = localFrame(G);
+  return rot(G, rot(north, east, beta), rho);
+}
+
+/** Punto 2D a distancia r de c, con ángulo `deg` medido en sentido antihorario desde el eje +x (pantalla: y hacia abajo). */
+const polar2 = (c, r, deg) => [c[0] + r * cosd(deg), c[1] - r * sind(deg)];
+
+/** Muestras de un arco 2D. */
+function arc2(c, r, d0, d1, step = 2) {
+  const n = Math.max(2, Math.ceil(Math.abs(d1 - d0) / step));
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(polar2(c, r, d0 + ((d1 - d0) * i) / n));
+  return pts;
+}
+
+return { arc, gc, small, angArc, localFrame, offsetOnSphere, arc2, DEG, clamp, mod360, wrap180, lerp, ease, sind, cosd, Y, ORIGIN, dot, add, sub, mul, cross, len, nrm, rot, geo, hor, vert, polar2 };
+})();
+
+// src/core/format.js
+const __m1 = (function () {
+// Formatos náuticos en español: grados y minutos, hemisferios, coma decimal.
+
+const { mod360 } = __m0;
+
+const MINUS = '−';
+
+/** 40.5 → "40° 30′" (sin signo). */
+function dm(x) {
+  const a = Math.abs(x);
+  let d = Math.floor(a + 1e-9);
+  let m = Math.round((a - d) * 60);
+  if (m === 60) { d++; m = 0; }
+  return `${d}° ${String(m).padStart(2, '0')}′`;
+}
+
+/** Grados y minutos con un decimal en los minutos: 24.8983 → "24° 53,9′". */
+function dmd(x) {
+  const neg = x < 0;
+  const a = Math.abs(x);
+  let d = Math.floor(a + 1e-9);
+  let m = Math.round((a - d) * 600) / 10;
+  if (m >= 60) { d++; m = 0; }
+  return `${neg ? MINUS : ''}${d}° ${fNum(m, 1).padStart(4, '0')}′`;
+}
+
+/** Con signo: −3.5 → "−3° 30′". */
+const dmSigned = (x) => (x < 0 ? MINUS : '') + dm(x);
+
+const fLat = (x) => dm(x) + (Math.abs(x) < 1 / 120 ? '' : x > 0 ? ' N' : ' S');
+const fLon = (x) => dm(x) + (Math.abs(x) < 1 / 120 || Math.abs(x) > 179.99 ? '' : x > 0 ? ' E' : ' W');
+
+/** Número con coma decimal y signo menos tipográfico. */
+const fNum = (x, d = 1) => x.toFixed(d).replace('.', ',').replace('-', MINUS);
+
+/** Kilómetros por milla náutica. */
+const KM_PER_MILE = 1.852;
+
+/**
+ * Distancia dada en millas náuticas, en la unidad elegida ('mi' | 'km'):
+ * fDist(12.3) → "12,3 millas"; fDist(12.3, 'km') → "22,8 km". Con 0 decimales, "1 milla".
+ */
+function fDist(millas, unit = 'mi', d = 1) {
+  if (unit === 'km') return `${fNum(millas * KM_PER_MILE, d)} km`;
+  const t = fNum(millas, d);
+  return `${t} ${t === '1' ? 'milla' : 'millas'}`;
+}
+
+/** Minutos de arco con signo explícito: 6 → "+6,0′". */
+const fMinSigned = (x) => (x >= 0 ? '+' : MINUS) + fNum(Math.abs(x), 1) + '′';
+
+/** Azimut o rumbo náutico en tres cifras: 50 → "050°". */
+const fAz3 = (z) => String(Math.round(mod360(z)) % 360).padStart(3, '0') + '°';
+
+/** Ángulo horario en horas y minutos de tiempo: 58 → "3 h 52 min". */
+function fHours(deg) {
+  const totalMin = Math.round((mod360(deg) / 15) * 60);
+  const h = Math.floor(totalMin / 60) % 24;
+  const m = totalMin % 60;
+  return `${h} h ${String(m).padStart(2, '0')} min`;
+}
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const MONTHS = MESES;
+
+/** Fecha en español: "21 de mayo". */
+const fDate = (date) => `${date.getUTCDate()} de ${MESES[date.getUTCMonth()]}`;
+
+/** Día del año (0 = 1 de enero) para un año no bisiesto de referencia. */
+function dayIndex(month, day, year = 2026) {
+  const t = Date.UTC(year, month, day);
+  return Math.round((t - Date.UTC(year, 0, 1)) / 86400000);
+}
+const dateFromIndex = (i, year = 2026) => new Date(Date.UTC(year, 0, 1 + i));
+
+/**
+ * Símbolos de cada notación. "intl" usa letras griegas; "esp" la notación de los
+ * textos náuticos españoles. Las claves son las que usan las figuras (F.N.lat, etc.).
+ */
+const NOTATION = {
+  intl: {
+    lat: 'φ', lon: 'λ', dec: 'δ', ha: 't', haG: 'tG', haA: 'tγ', haGA: 'tGγ', sha: 'AS', ra: 'AR',
+    alt: 'a', az: 'Z', zd: 'z', da: 'Δa', dip: 'dp', ai: 'ai', ap: 'ap', av: 'av', eps: 'ε',
+  },
+  esp: {
+    lat: 'l', lon: 'L', dec: 'd', ha: 'hL', haG: 'hG', haA: 'hLγ', haGA: 'hGγ', sha: 'AS', ra: 'AR',
+    alt: 'a', az: 'Z', zd: 'z', da: 'Δa', dip: 'dp', ai: 'ai', ap: 'ap', av: 'av', eps: 'ε',
+  },
+};
+
+return { dm, dmd, fDist, fHours, dayIndex, dmSigned, fLat, fLon, fNum, KM_PER_MILE, fMinSigned, fAz3, MONTHS, fDate, dateFromIndex, NOTATION };
+})();
+
+// src/figures/terrestre.js
+const __m2 = (function () {
+const { Y, arc, small, mul, geo } = __m0;
+const { dm, fLat, fLon, fDist } = __m1;
+
+const __default = {
+  id: 'terrestre',
+  group: 'tierra',
+  name: 'Coordenadas terrestres',
+  desc: 'Latitud y longitud de un lugar en la Tierra',
+  view: { yaw: 25, pitch: 18 },
+  params: [
+    { k: 'lat', kind: 'angle', sym: 'lat', label: 'Latitud del lugar', min: -90, max: 90, def: 40.5, hem: ['N', 'S'],
+      help: 'Arco de meridiano desde el ecuador hasta el lugar.' },
+    { k: 'lon', kind: 'angle', sym: 'lon', label: 'Longitud del lugar', min: -180, max: 180, def: -30, hem: ['E', 'W'],
+      help: 'Arco de ecuador desde Greenwich hasta el meridiano del lugar.' },
+  ],
+  opts: [
+    ['grid', 'Red de meridianos y paralelos', true],
+    ['paralelo', 'Paralelo del lugar', true],
+    ['merlugar', 'Meridiano del lugar', true],
+    ['centro', 'Radios y ángulos en el centro de la Tierra', false],
+    ['plano', 'Sombrear el plano del ecuador', false],
+  ],
+  caption: 'Coordenadas terrestres: latitud y longitud de un lugar.',
+  animations: [
+    { label: 'Recorrer las longitudes', param: 'lon', from: -180, to: 180 },
+    { label: 'Del ecuador al polo', param: 'lat', from: 0, to: 85 },
+  ],
+
+  draw(F, p, o) {
+    F.sphere = true;
+    const N = F.N, { lat, lon } = p;
+    const E0 = geo(0, 0), E90 = geo(0, 90), P = geo(lat, lon);
+
+    F.step(1, 'La Tierra, el ecuador y Greenwich');
+    if (o.plano) F.fillPlane(arc(E0, E90, 0, 360, 4), F.pal.plane);
+    if (o.grid) {
+      for (const la of [-60, -30, 30, 60]) F.curve(small(Y, 90 - la), 'grid');
+      for (let lo = -150; lo <= 180; lo += 30) if (lo !== 0) F.curve(arc(geo(0, lo), Y, -90, 90), 'grid');
+    }
+    F.curve(arc(E0, E90, 0, 360), 'ref');
+    F.seg([0, -1.2, 0], [0, 1.2, 0], 'ref2');
+    F.curve(arc(E0, Y, -90, 90), 'ref');
+    F.labR('pn', 'Pn', [0, 1.2, 0], 10);
+    F.labR('ps', 'Ps', [0, -1.2, 0], 10);
+    const ea = F.pickAngle((a) => geo(0, a), [0, lon], F.curved ? 0 : 0.5);
+    F.labCurve('ecuador', 'Ecuador', arc(E0, E90, ea - 30, ea + 30), 'out',
+      () => F.labT('ecuador', 'Ecuador', geo(0, ea), geo(-10, ea), 10, { italic: true }), { italic: true });
+    F.labR('greenwich', 'Meridiano de Greenwich', geo(62, 0), 10, { italic: true, scale: 0.85 });
+
+    F.step(2, 'El lugar, su meridiano y su paralelo');
+    if (o.merlugar) {
+      F.curve(arc(geo(0, lon), Y, -90, 90), 'ref2');
+      F.labR('merlugar', 'Meridiano del lugar', geo(-48, lon), 10, { italic: true, scale: 0.85 });
+    }
+    if (o.paralelo && Math.abs(lat) < 89.5) {
+      F.curve(small(Y, 90 - lat), 'ref2');
+      if (Math.abs(lat) < 80) F.labT('paralelo', 'Paralelo del lugar', geo(lat, lon + 70), geo(lat + 10, lon + 70), 8, { italic: true, scale: 0.85 });
+    }
+    F.dot(P, F.pal.dot, 6);
+    F.labR('P', 'P', P, 14, { bold: true, scale: 1.1 });
+
+    F.step(3, 'Latitud');
+    F.curve(arc(geo(0, lon), Y, 0, lat), 'c1', { arrow: 'trim' });
+    const side = lon >= 0 ? 1 : -1;
+    F.labT('lat', F.val(N.lat, fLat(lat), 'Latitud'), geo(lat / 2, lon), geo(lat / 2, lon + side * 10), 12, { col: F.pal.c1 });
+
+    F.step(4, 'Longitud');
+    F.curve(arc(E0, E90, 0, lon), 'c2', { arrow: 'end' });
+    F.labT('lon', F.val(N.lon, fLon(lon), 'Longitud'), geo(0, lon / 2), geo(lat >= 0 ? -10 : 10, lon / 2), 12, { col: F.pal.c2 });
+
+    if (o.centro) {
+      F.step(5, 'Ángulos en el centro de la Tierra');
+      const O = [0, 0, 0];
+      F.seg(O, P, 'inner');
+      F.seg(O, geo(0, lon), 'inner');
+      F.seg(O, E0, 'inner');
+      F.flat(arc(geo(0, lon), Y, 0, lat).map((q) => mul(q, 0.22)), 't1');
+      F.flat(arc(E0, E90, 0, lon).map((q) => mul(q, 0.16)), 't2');
+      const s = F.P(O);
+      F.dotS(s[0], s[1], F.pal.ink, 3.5);
+      F.labAt('O', F.words ? 'Centro' : 'O', [0, -0.08, 0]);
+      F.labAt('phiC', N.lat, mul(geo(lat / 2, lon), 0.3), { col: F.pal.c1, scale: 0.85 });
+      F.labAt('lamC', N.lon, mul(geo(-4, lon / 2), 0.27), { col: F.pal.c2, scale: 0.85 });
+    }
+  },
+
+  compute(p, o, ctx = {}) {
+    return [
+      ['Latitud', fLat(p.lat)],
+      ['Longitud', fLon(p.lon)],
+      ['Colatitud (90° − latitud)', dm(90 - Math.abs(p.lat))],
+      ['Distancia al ecuador', fDist(Math.abs(p.lat) * 60, ctx.dist, 0)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/core/draw.js
+const __m3 = (function () {
+// Motor de dibujo: la clase Fig recoge primitivas (curvas, puntos, rótulos) y
+// produce un SVG. No toca el DOM, así que funciona igual en el navegador y en Node.
+//
+// Construcción paso a paso: cada figura llama a F.step(n, 'Título') antes de dibujar
+// cada grupo de elementos. Con `reveal = {upto, frac}` solo se ven los pasos ≤ upto,
+// y el paso `upto` aparece parcialmente (las curvas crecen, los rótulos aparecen al final).
+
+const { DEG, clamp, add, sub, mul, len } = __m0;
+const { NOTATION } = __m1;
+
+const W = 820;
+const H = 780;
+const CX = 410;
+const CY = 392;
+const R = 290;
+
+const FONTS = {
+  serif: "Georgia, 'Times New Roman', serif",
+  sans: "'DejaVu Sans', Verdana, Arial, sans-serif",
+};
+
+function palette(mode) {
+  if (mode === 'bn') {
+    return {
+      ink: '#111111', ref: '#222222', grid: '#8f8f8f', eqc: '#333333',
+      c1: '#000000', c2: '#000000', c3: '#000000',
+      sphere: '#ffffff', plane: 'rgba(0,0,0,0.06)', bowl1: '#b4b4b4', bowl2: '#f6f6f6',
+      tri: 'rgba(0,0,0,0.13)', sun: '#ffffff', star: '#111111', dot: '#000000', sea: '#ececec', paper: '#ffffff',
+    };
+  }
+  return {
+    ink: '#1C2733', ref: '#3A4A5C', grid: '#A6B2BE', eqc: '#4F7DB3',
+    c1: '#B0306A', c2: '#1F5FA8', c3: '#2E7D4F',
+    sphere: '#F3F7FA', plane: 'rgba(31,95,168,0.09)', bowl1: '#b3c6d9', bowl2: '#f2f6fa',
+    tri: 'rgba(176,48,106,0.14)', sun: '#F0B429', star: '#E8A817', dot: '#B0306A', sea: '#DCE7F0', paper: '#ffffff',
+  };
+}
+
+// Categorías de trazo: [color de la paleta, grosor base].
+const CATS = {
+  sphere: ['ink', 1.8], ref: ['ref', 1.5], ref2: ['ref', 1.05], eq: ['eqc', 1.5], grid: ['grid', 0.7],
+  inner: ['grid', 1.1], c1: ['c1', 2.8], c2: ['c2', 2.8], c3: ['c3', 2.8],
+  t1: ['c1', 1.4], t2: ['c2', 1.4], t3: ['c3', 1.4], ang: ['ink', 1.4], ink: ['ink', 1.2],
+};
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const f1 = (x) => x.toFixed(1);
+const pathD = (pts) => 'M' + pts.map((p) => f1(p[0]) + ',' + f1(p[1])).join('L');
+
+/** Recorta una polilínea a la fracción v de sus puntos (interpolando el último). */
+function partial(pts, v) {
+  if (v >= 1 || pts.length < 2) return pts;
+  const x = Math.max(0, v) * (pts.length - 1);
+  const i = Math.floor(x), f = x - i;
+  const out = pts.slice(0, i + 1);
+  if (i + 1 < pts.length && f > 0) {
+    const a = pts[i], b = pts[i + 1];
+    out.push(a.map((c, j) => c + (b[j] - c) * f));
+  }
+  if (out.length < 2) out.push(out[0]);
+  return out;
+}
+
+function wrapText(t, max) {
+  const words = t.split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 3);
+}
+
+class Fig {
+  /**
+   * @param {object} o
+   * @param {object} o.style   estilo global (ver state.js DEFAULT_STYLE)
+   * @param {object} [o.view]  {yaw, pitch} en grados para figuras 3D
+   * @param {object} [o.reveal] {upto, frac} para la construcción paso a paso
+   * @param {string} [o.idPrefix] prefijo de ids SVG (evita choques entre varios SVG en la misma página)
+   */
+  constructor({ style, view = null, reveal = null, idPrefix = 'f' }) {
+    this.style = style;
+    this.pal = palette(style.mode);
+    this.bw = style.mode === 'bn';
+    this.lw = { f: 0.75, n: 1, g: 1.4 }[style.weight] ?? 1;
+    this.fs = { s: 16, m: 20, l: 25 }[style.size] ?? 20;
+    this.font = FONTS[style.font] || FONTS.serif;
+    this.hidden = style.hidden !== false;
+    this.vals = style.values !== false;
+    this.words = !!style.words;
+    this.arrows = style.arrows !== false;
+    this.curved = !!style.curved;
+    this.N = NOTATION[style.notation] || NOTATION.intl;
+    this.dist = style.dist === 'km' ? 'km' : 'mi';
+    this.reveal = reveal;
+    this.idp = idPrefix;
+    this.cur = 0;
+    this.stepTitles = {};
+    this.maxStep = 0;
+    this.layers = { fills: [], back: [], front: [], marks: [], defs: [] };
+    this.labels = [];
+    this.labelIndex = [];
+    this.sphere = false;
+    this.setView(view || { yaw: 0, pitch: 0 });
+  }
+
+  setView(v) {
+    this.view = v;
+    this._cy = Math.cos(v.yaw * DEG); this._sy = Math.sin(v.yaw * DEG);
+    this._cp = Math.cos(v.pitch * DEG); this._sp = Math.sin(v.pitch * DEG);
+  }
+
+  /** Coordenadas de cámara: [x, y, profundidad]; profundidad > 0 = cara visible. */
+  V(p) {
+    const x1 = p[0] * this._cy + p[2] * this._sy;
+    const z1 = -p[0] * this._sy + p[2] * this._cy;
+    return [x1, p[1] * this._cp - z1 * this._sp, p[1] * this._sp + z1 * this._cp];
+  }
+
+  /** Proyección a pantalla: [x, y, profundidad]. */
+  P(p) {
+    const q = this.V(p);
+    return [CX + R * q[0], CY - R * q[1], q[2]];
+  }
+
+  // ---------- pasos ----------
+  step(n, title) {
+    this.cur = n;
+    if (title) this.stepTitles[n] = title;
+    this.maxStep = Math.max(this.maxStep, n);
+  }
+
+  /** Fracción visible del elemento que se dibuja ahora (0 = oculto, 1 = completo). */
+  vis() {
+    const r = this.reveal;
+    if (!r) return 1;
+    if (this.cur < r.upto) return 1;
+    if (this.cur > r.upto) return 0;
+    return clamp(r.frac, 0, 1);
+  }
+
+  _push(layer, svg, v = 1) {
+    this.layers[layer].push(v >= 0.999 ? svg : `<g opacity="${v.toFixed(3)}">${svg}</g>`);
+  }
+
+  stroke(cat, kind = 'front') {
+    const [ck, w] = CATS[cat] || CATS.ref;
+    let width = w * this.lw;
+    let extra = '';
+    if (kind === 'back') { width *= 0.8; extra = ` stroke-dasharray="${f1(6 * this.lw)} ${f1(5 * this.lw)}" opacity="0.6"`; }
+    else if (kind === 'dot') { width *= 0.9; extra = ` stroke-dasharray="0.1 ${f1(4.5 * this.lw)}"`; }
+    else if (kind === 'in') { width *= 0.85; extra = ` stroke-dasharray="${f1(3.5 * this.lw)} ${f1(3.5 * this.lw)}"`; }
+    else if (kind === 'dash') { extra = ` stroke-dasharray="${f1(9 * this.lw)} ${f1(6 * this.lw)}"`; }
+    return `fill="none" stroke="${this.pal[ck]}" stroke-width="${width.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"${extra}`;
+  }
+
+  // ---------- primitivas 3D ----------
+  /** Curva sobre la esfera; las partes ocultas van a trazos. o.arrow: 'end' | 'trim'; o.dash: trazo discontinuo. */
+  curve(pts, cat, o = {}) {
+    const v = this.vis();
+    if (v <= 0 || !pts || pts.length < 2) return;
+    if (v < 1) pts = partial(pts, v);
+    const pr = pts.map((p) => this.P(p));
+    const runs = [];
+    let cur = { vis: pr[0][2] >= 0, pts: [pr[0]] };
+    for (let i = 1; i < pr.length; i++) {
+      const a = pr[i - 1], b = pr[i], vb = b[2] >= 0;
+      if (vb === cur.vis) cur.pts.push(b);
+      else {
+        const t = a[2] / (a[2] - b[2]);
+        const m = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, 0];
+        cur.pts.push(m); runs.push(cur); cur = { vis: vb, pts: [m, b] };
+      }
+    }
+    runs.push(cur);
+    const fk = o.dash ? 'dash' : 'front';
+    for (const r of runs) {
+      if (r.pts.length < 2) continue;
+      if (r.vis) this.layers.front.push(`<path d="${pathD(r.pts)}" ${this.stroke(cat, fk)}/>`);
+      else if (this.hidden) this.layers.back.push(`<path d="${pathD(r.pts)}" ${this.stroke(cat, 'back')}/>`);
+    }
+    if (o.arrow && this.arrows) this._arrow3(pts, cat, o.arrow === 'trim');
+  }
+
+  /** Solo la punta de flecha al final de pts (3D). */
+  arrowHead(pts, cat) {
+    if (!this.arrows || this.vis() < 0.999) return;
+    this._arrow3(pts, cat, false);
+  }
+
+  _chev(P, Q, cat) {
+    const ux = P[0] - Q[0], uy = P[1] - Q[1], l = Math.hypot(ux, uy);
+    if (l < 1e-3) return;
+    const u = [ux / l, uy / l], n = [-u[1], u[0]], L = 12 * Math.max(1, Math.sqrt(this.lw));
+    const w1 = [P[0] - u[0] * L + n[0] * L * 0.42, P[1] - u[1] * L + n[1] * L * 0.42];
+    const w2 = [P[0] - u[0] * L - n[0] * L * 0.42, P[1] - u[1] * L - n[1] * L * 0.42];
+    this.layers.front.push(`<path d="${pathD([w1, P, w2])}" ${this.stroke(cat, 'front')}/>`);
+  }
+
+  _arrow3(pts, cat, trim) {
+    if (pts.length < 3) return;
+    let i = pts.length - 1;
+    if (trim) i = Math.max(2, i - 3);
+    const P = this.P(pts[i]);
+    if (P[2] < -0.001) return;
+    let j = i - 1, Q = this.P(pts[j]);
+    while (j > 0 && Math.hypot(P[0] - Q[0], P[1] - Q[1]) < 8) { j--; Q = this.P(pts[j]); }
+    this._chev(P, Q, cat);
+  }
+
+  _arrow2(pts, cat) {
+    if (pts.length < 2) return;
+    const P = pts[pts.length - 1];
+    let j = pts.length - 2, Q = pts[j];
+    while (j > 0 && Math.hypot(P[0] - Q[0], P[1] - Q[1]) < 8) { j--; Q = pts[j]; }
+    this._chev(P, Q, cat);
+  }
+
+  /** Segmento recto en el espacio: punteado dentro de la esfera, a trazos detrás. */
+  seg(a, b, cat) {
+    const v = this.vis();
+    if (v <= 0) return;
+    if (v < 1) b = add(a, mul(sub(b, a), v));
+    const n = 80;
+    const cls = (p) => {
+      const q = this.V(p);
+      if (len(p) <= 1.0001) return 'in';
+      if (q[0] * q[0] + q[1] * q[1] < 1 && q[2] < 0) return 'back';
+      return 'front';
+    };
+    const runs = [];
+    let cur = null;
+    for (let i = 0; i <= n; i++) {
+      const p = add(a, mul(sub(b, a), i / n));
+      const c = cls(p), s = this.P(p);
+      if (!cur || cur.c !== c) { if (cur) { cur.pts.push(s); runs.push(cur); } cur = { c, pts: [s] }; } else cur.pts.push(s);
+    }
+    runs.push(cur);
+    for (const r of runs) {
+      if (r.pts.length < 2) continue;
+      if (r.c === 'front') this.layers.front.push(`<path d="${pathD(r.pts)}" ${this.stroke(cat, 'front')}/>`);
+      else if (r.c === 'in') this.layers.back.push(`<path d="${pathD(r.pts)}" ${this.stroke(cat, 'in')}/>`);
+      else if (this.hidden) this.layers.back.push(`<path d="${pathD(r.pts)}" ${this.stroke(cat, 'back')}/>`);
+    }
+  }
+
+  /** Línea recta proyectada (por ejemplo, del observador a la estrella), en la capa de fondo. */
+  line(a, b, cat, kind = 'front') {
+    const v = this.vis();
+    if (v <= 0) return;
+    if (v < 1) b = add(a, mul(sub(b, a), v));
+    this.layers.back.push(`<path d="${pathD([this.P(a), this.P(b)])}" ${this.stroke(cat, kind)}/>`);
+  }
+
+  /** Polilínea 3D sin distinguir caras (arquitos interiores). */
+  flat(pts, cat) {
+    const v = this.vis();
+    if (v <= 0) return;
+    this.layers.front.push(`<path d="${pathD(partial(pts, v).map((p) => this.P(p)))}" ${this.stroke(cat, 'front')}/>`);
+  }
+
+  fillPlane(pts, fill) {
+    const v = this.vis();
+    if (v <= 0) return;
+    this._push('fills', `<path d="${pathD(pts.map((p) => this.P(p)))}Z" fill="${fill}" stroke="none"/>`, v);
+  }
+
+  /** Media esfera bajo el horizonte, sombreada en degradado. */
+  bowl() {
+    const v = this.vis();
+    if (v <= 0) return;
+    const ry = R * Math.abs(Math.sin(this.view.pitch * DEG));
+    const L = `${CX - R},${CY}`, Rt = `${CX + R},${CY}`;
+    const gid = this.idp + 'bowl';
+    this.layers.defs.push(`<linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${this.pal.bowl1}"/><stop offset="1" stop-color="${this.pal.bowl2}"/></linearGradient>`);
+    this._push('fills', `<path d="M${L} A${R},${f1(ry)} 0 0 ${this.view.pitch >= 0 ? 0 : 1} ${Rt} A${R},${R} 0 0 1 ${L}Z" fill="url(#${gid})"/>`, v);
+  }
+
+  dot(p, col, r = 5) {
+    const s = this.P(p);
+    this.dotS(s[0], s[1], col, r, s[2] < -0.001);
+  }
+
+  dotS(x, y, col, r = 5, back = false) {
+    const v = this.vis();
+    if (v <= 0) return;
+    const rr = r * Math.sqrt(this.lw);
+    this._push('marks', `<circle cx="${f1(x)}" cy="${f1(y)}" r="${rr.toFixed(2)}" fill="${back ? this.pal.paper : col}" stroke="${col}" stroke-width="1.5"${back ? ' opacity="0.6"' : ''}/>`, v);
+  }
+
+  /** Astro en un punto de la esfera. type: 'sol' | 'estrella' | 'punto'. */
+  astro(p, type) {
+    const s = this.P(p);
+    this.astroAt(s, type, s[2] < 0);
+  }
+
+  astroAt(s, type, back = false, o = {}) {
+    const v = this.vis();
+    if (v <= 0) return;
+    const x = s[0], y = s[1], k = Math.max(0.9, Math.sqrt(this.lw)) * (o.scale || 1);
+    let g = '';
+    if (type === 'punto') {
+      g = `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(7 * k)}" fill="${o.hollow ? this.pal.paper : this.pal.ink}" stroke="${this.pal.ink}" stroke-width="1.5"/>`;
+    } else if (type === 'sol') {
+      for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4;
+        g += `<line x1="${f1(x + Math.cos(a) * 12 * k)}" y1="${f1(y + Math.sin(a) * 12 * k)}" x2="${f1(x + Math.cos(a) * 18 * k)}" y2="${f1(y + Math.sin(a) * 18 * k)}" stroke="${this.pal.ink}" stroke-width="1.6" stroke-linecap="round"/>`;
+      }
+      g += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(9 * k)}" fill="${o.hollow ? this.pal.paper : this.pal.sun}" stroke="${this.pal.ink}" stroke-width="1.5"/>`;
+      if (this.bw && !o.hollow) g += `<circle cx="${f1(x)}" cy="${f1(y)}" r="2.2" fill="#000000"/>`;
+    } else {
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5, r = (i % 2 ? 5.5 : 13.5) * k;
+        pts.push(f1(x + Math.cos(a) * r) + ',' + f1(y + Math.sin(a) * r));
+      }
+      g = `<polygon points="${pts.join(' ')}" fill="${o.hollow ? this.pal.paper : this.pal.star}" stroke="${this.pal.ink}" stroke-width="1.2" stroke-linejoin="round"/>`;
+    }
+    this._push('marks', back ? `<g opacity="0.55">${g}</g>` : g, v);
+  }
+
+  // ---------- primitivas 2D (coordenadas de pantalla) ----------
+  /** Polilínea en pantalla. o: {kind, arrow, layer} */
+  path(pts, cat, o = {}) {
+    const v = this.vis();
+    if (v <= 0 || pts.length < 2) return;
+    const p = partial(pts, v);
+    this.layers[o.layer || 'front'].push(`<path d="${pathD(p)}" ${this.stroke(cat, o.kind || 'front')}/>`);
+    if (o.arrow && this.arrows) this._arrow2(p, cat);
+  }
+
+  poly(pts, fill, o = {}) {
+    const v = this.vis();
+    if (v <= 0) return;
+    const stroke = o.stroke ? ` stroke="${this.pal[CATS[o.stroke][0]]}" stroke-width="${(CATS[o.stroke][1] * this.lw).toFixed(2)}" stroke-linejoin="round"` : ' stroke="none"';
+    this._push(o.layer || 'fills', `<path d="${pathD(pts)}Z" fill="${fill}"${stroke}/>`, v);
+  }
+
+  /** SVG en bruto (ya construido con las coordenadas finales). */
+  raw(svg, layer = 'marks') {
+    const v = this.vis();
+    if (v <= 0) return;
+    this._push(layer, svg, v);
+  }
+
+  // ---------- rótulos ----------
+  lab(id, text, x, y, o = {}) {
+    this.labelIndex.push({ id, text });
+    const v = this.vis();
+    const op = v >= 1 ? 1 : clamp((v - 0.45) / 0.55, 0, 1);
+    if (op <= 0) return;
+    // Mantiene el texto dentro del lienzo (anchura aproximada a partir del número de letras).
+    const size = (o.scale || 1) * this.fs;
+    const wEst = String(text).length * size * 0.52;
+    const anchor = o.anchor || 'middle';
+    const left = anchor === 'start' ? x : anchor === 'end' ? x - wEst : x - wEst / 2;
+    if (left < 6) x += 6 - left;
+    else if (left + wEst > W - 6) x -= left + wEst - (W - 6);
+    y = clamp(y, size + 2, H - 6);
+    this.labels.push({
+      id, text, x, y, anchor, col: o.col || this.pal.ink,
+      size, bold: !!o.bold, italic: !!o.italic, faint: !!o.faint, op,
+    });
+  }
+
+  /** Rótulo desplazado px píxeles desde s en la dirección (dx, dy) unitaria. */
+  place(id, text, s, dx, dy, px, o = {}) {
+    const size = (o.scale || 1) * this.fs;
+    const x = s[0] + dx * px, y = s[1] + dy * px;
+    const anchor = o.anchor || (dx > 0.35 ? 'start' : dx < -0.35 ? 'end' : 'middle');
+    const yb = y + size * 0.35 + (Math.abs(dx) <= 0.35 ? dy * size * 0.5 : 0);
+    this.lab(id, text, x, yb, { ...o, anchor });
+  }
+
+  /** Rótulo hacia fuera desde el centro de la figura. */
+  labR(id, text, p3, px, o = {}) {
+    const s = this.P(p3);
+    let dx = s[0] - CX, dy = s[1] - CY;
+    const l = Math.hypot(dx, dy);
+    if (l < 1) { dx = 0; dy = -1; } else { dx /= l; dy /= l; }
+    this.place(id, text, s, dx, dy, px, { faint: s[2] < -0.01, ...o });
+  }
+
+  /** Rótulo junto a p3, desplazado hacia p3dir. */
+  labT(id, text, p3, p3dir, px, o = {}) {
+    const s = this.P(p3), t = this.P(p3dir);
+    const dx = t[0] - s[0], dy = t[1] - s[1], l = Math.hypot(dx, dy) || 1;
+    this.place(id, text, s, dx / l, dy / l, px, { faint: s[2] < -0.01, ...o });
+  }
+
+  /** Rótulo junto a p3, alejándose del punto de pantalla `from`. */
+  labAway(id, text, p3, from, px, o = {}) {
+    const s = this.P(p3);
+    const dx = s[0] - from[0], dy = s[1] - from[1], l = Math.hypot(dx, dy) || 1;
+    this.place(id, text, s, dx / l, dy / l, px, { faint: s[2] < -0.01, ...o });
+  }
+
+  labAt(id, text, p3, o = {}) {
+    const s = this.P(p3);
+    this.lab(id, text, s[0], s[1] + this.fs * 0.35 * (o.scale || 1), { faint: s[2] < -0.01, ...o });
+  }
+
+  /** Rótulo 2D alejándose de un centro de pantalla. */
+  labAway2(id, text, s, from, px, o = {}) {
+    const dx = s[0] - from[0], dy = s[1] - from[1], l = Math.hypot(dx, dy) || 1;
+    this.place(id, text, s, dx / l, dy / l, px, o);
+  }
+
+  /** Rótulo que sigue una curva 3D. Si no cabe o la curva se dobla, usa `fallback`. */
+  labCurve(id, text, pts3, side, fallback, o = {}) {
+    if (!this.curved) { fallback(); return; }
+    let pts = pts3.map((p) => this.P(p)).filter((q) => q[2] >= -0.001);
+    if (pts.length < 4) { fallback(); return; }
+    const dx = pts[pts.length - 1][0] - pts[0][0], dy = pts[pts.length - 1][1] - pts[0][1];
+    const vertical = Math.abs(dx) < Math.abs(dy) * 0.35;
+    if (vertical) { if (dy < 0) pts = [...pts].reverse(); } else if (dx < 0) pts = [...pts].reverse();
+    for (let i = 1; i < pts.length; i++) {
+      const st = vertical ? pts[i][1] - pts[i - 1][1] : pts[i][0] - pts[i - 1][0];
+      if (st < -0.5) { fallback(); return; }
+    }
+    let plen = 0;
+    for (let i = 1; i < pts.length; i++) plen += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (plen < text.length * ((o.scale || 1) * this.fs) * 0.55) { fallback(); return; }
+    const k = Math.floor(pts.length / 2), m = pts[k], m1 = pts[Math.max(0, k - 1)], m2 = pts[Math.min(pts.length - 1, k + 1)];
+    const d = [m2[0] - m1[0], m2[1] - m1[1]], n = [-d[1], d[0]];
+    const nOut = (m[0] - CX) * n[0] + (m[1] - CY) * n[1] > 0;
+    const wantN = side === 'out' ? nOut : !nOut;
+    const size = (o.scale || 1) * this.fs;
+    const pid = `${this.idp}cp-${id}`;
+    this.layers.defs.push(`<path id="${pid}" d="${pathD(pts)}" fill="none"/>`);
+    this.labelIndex.push({ id, text });
+    const v = this.vis();
+    const op = v >= 1 ? 1 : clamp((v - 0.45) / 0.55, 0, 1);
+    if (op <= 0) return;
+    this.labels.push({
+      id, text, curve: { pid, dy: wantN ? 9 + size * 0.75 : -9 }, anchor: 'middle', col: o.col || this.pal.ink,
+      size, bold: !!o.bold, italic: !!o.italic, faint: false, x: 0, y: 0, op,
+    });
+  }
+
+  /** Elige un ángulo libre (lejos de `avoid`) y bien visible para colocar un rótulo. */
+  pickAngle(fn, avoid, prefLeft = 0.5) {
+    let best = 0, bs = -1e9;
+    for (let a = 0; a < 360; a += 5) {
+      if (avoid.some((v) => Math.abs(((a - v + 540) % 360) - 180) < 28)) continue;
+      const q = this.V(fn(a));
+      const sc = q[2] - prefLeft * q[0] - 0.3 * q[1];
+      if (sc > bs) { bs = sc; best = a; }
+    }
+    return best;
+  }
+
+  /** Texto de un arco: símbolo o palabra, con o sin valor. */
+  val(sym, text, word) {
+    const w = this.words && word;
+    const name = w ? word : sym;
+    if (!this.vals) return name;
+    return w ? `${name} ${text}` : `${name} = ${text}`;
+  }
+
+  // ---------- salida ----------
+  toSVG({ transparent = false, caption = '', offsets = {}, texts = {}, showLabels = true, banner = '' } = {}) {
+    const cap = (caption || '').trim();
+    const lines = cap ? wrapText(cap, 62) : [];
+    const capH = lines.length ? lines.length * this.fs * 1.35 + 30 : 0;
+    const h = Math.round(H + capH);
+    const id = this.idp;
+    let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${h}" width="${W}" height="${h}" font-family="${this.font}">`;
+    s += `<defs><clipPath id="${id}clip"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath>${this.layers.defs.join('')}</defs>`;
+    if (!transparent) s += `<rect x="0" y="0" width="${W}" height="${h}" fill="${this.pal.paper}"/>`;
+    s += `<g clip-path="url(#${id}clip)">`;
+    if (this.sphere) s += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${this.pal.sphere}"/>`;
+    s += this.layers.fills.join('') + this.layers.back.join('');
+    if (this.sphere) s += `<circle cx="${CX}" cy="${CY}" r="${R}" ${this.stroke('sphere', 'front')}/>`;
+    s += this.layers.front.join('') + this.layers.marks.join('');
+    if (showLabels) {
+      for (const L of this.labels) {
+        const txt = String(texts[L.id] || '').trim() || L.text;
+        if (!txt) continue;
+        const o = offsets[L.id] || { dx: 0, dy: 0 };
+        const op = (L.faint ? 0.6 : 1) * L.op;
+        const common = `font-size="${L.size.toFixed(1)}" fill="${L.col}"${L.bold ? ' font-weight="bold"' : ''}${L.italic ? ' font-style="italic"' : ''}${op < 0.999 ? ` opacity="${op.toFixed(3)}"` : ''} stroke="${this.pal.paper}" stroke-width="${(L.size * 0.26).toFixed(1)}" stroke-linejoin="round" paint-order="stroke"`;
+        if (L.curve) {
+          s += `<g data-lid="${esc(L.id)}" transform="translate(${f1(o.dx)},${f1(o.dy)})"><text ${common} dy="${L.curve.dy.toFixed(1)}"><textPath href="#${L.curve.pid}" xlink:href="#${L.curve.pid}" startOffset="50%" text-anchor="middle">${esc(txt)}</textPath></text></g>`;
+        } else {
+          s += `<text data-lid="${esc(L.id)}" x="${f1(L.x + o.dx)}" y="${f1(L.y + o.dy)}" text-anchor="${L.anchor}" ${common}>${esc(txt)}</text>`;
+        }
+      }
+    }
+    s += '</g>';
+    if (banner) {
+      s += `<text x="24" y="${f1(16 + this.fs * 1.1)}" font-size="${f1(this.fs * 1.1)}" font-weight="bold" fill="${this.pal.ink}" stroke="${this.pal.paper}" stroke-width="${f1(this.fs * 0.3)}" stroke-linejoin="round" paint-order="stroke">${esc(banner)}</text>`;
+    }
+    lines.forEach((ln, i) => {
+      s += `<text x="${W / 2}" y="${f1(H + 22 + this.fs + i * this.fs * 1.35)}" text-anchor="middle" font-size="${this.fs}" font-style="italic" fill="${this.pal.ink}">${esc(ln)}</text>`;
+    });
+    return { svg: s + '</svg>', width: W, height: h };
+  }
+}
+
+return { palette, partial, wrapText, W, H, CX, CY, R, FONTS, esc, pathD, Fig };
+})();
+
+// src/core/astro.js
+const __m4 = (function () {
+// Fórmulas de navegación astronómica. Todo en grados salvo que se diga otra cosa.
+// Convenciones: latitud y declinación positivas al N; longitud positiva al E;
+// horarios (t, hL, hG) contados hacia el W de 0° a 360°; azimut desde el N hacia el E.
+
+const { DEG, clamp, mod360, wrap180 } = __m0;
+
+/** Altura y azimut a partir de latitud, declinación y horario del lugar (triángulo de posición). */
+function altAz(lat, dec, lha) {
+  const f = lat * DEG, d = dec * DEG, t = lha * DEG;
+  const sa = Math.sin(f) * Math.sin(d) + Math.cos(f) * Math.cos(d) * Math.cos(t);
+  const alt = Math.asin(clamp(sa, -1, 1)) / DEG;
+  const az = mod360(
+    Math.atan2(-Math.sin(t) * Math.cos(d), Math.cos(f) * Math.sin(d) - Math.sin(f) * Math.cos(d) * Math.cos(t)) / DEG,
+  );
+  return { alt, az };
+}
+
+/**
+ * Movimiento diurno de un astro: tipo, arco semidiurno t0 y azimutes de orto y ocaso.
+ * kind: 'circumpolar' (nunca se pone), 'nunca' (nunca sale) u 'orto' (sale y se pone).
+ */
+function diurnal(lat, dec) {
+  const x = -Math.tan(lat * DEG) * Math.tan(dec * DEG);
+  if (!Number.isFinite(x) || x <= -1) return { kind: 'circumpolar', t0: 180 };
+  if (x >= 1) return { kind: 'nunca', t0: 0 };
+  const t0 = Math.acos(x) / DEG;
+  const zOrto = Math.acos(clamp(Math.sin(dec * DEG) / Math.cos(lat * DEG), -1, 1)) / DEG;
+  return { kind: 'orto', t0, zOrto, zOcaso: 360 - zOrto };
+}
+
+/** Altura en la culminación superior (paso por el meridiano superior). */
+const upperCulmination = (lat, dec) => 90 - Math.abs(lat - dec);
+/** Altura en la culminación inferior (negativa si ocurre bajo el horizonte). */
+const lowerCulmination = (lat, dec) => Math.abs(lat + dec) - 90;
+
+/** Día juliano a las 0 h TU. */
+function julianDay(y, m, d) {
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+
+/**
+ * Posición aproximada del Sol a mediodía TU del día `dayIndex` (0 = 1 de enero).
+ * Precisión de unas centésimas de grado: suficiente para ilustrar, no para navegar.
+ */
+function sunForDay(dayIndex, year = 2026) {
+  const n = julianDay(year, 1, 1) + dayIndex + 0.5 - 2451545.0;
+  const L = mod360(280.46 + 0.9856474 * n);
+  const g = mod360(357.528 + 0.9856003 * n) * DEG;
+  const lambda = mod360(L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g));
+  const eps = 23.439 - 0.0000004 * n;
+  const l = lambda * DEG, e = eps * DEG;
+  const dec = Math.asin(Math.sin(e) * Math.sin(l)) / DEG;
+  const ra = mod360(Math.atan2(Math.cos(e) * Math.sin(l), Math.cos(l)) / DEG);
+  return { lambda, dec, ra, eps, date: new Date(Date.UTC(year, 0, 1 + dayIndex)) };
+}
+
+/** Punto subastral: latitud = declinación; longitud = −horario en Greenwich (llevado a ±180°). */
+const subastral = (dec, gha) => ({ lat: dec, lon: wrap180(-gha) });
+
+/** Horario del lugar a partir del horario en Greenwich y la longitud (E positiva). */
+const lhaFrom = (gha, lonE) => mod360(gha + lonE);
+
+/** Depresión del horizonte en minutos de arco para una altura del ojo h en metros. */
+const dip = (h) => 1.76 * Math.sqrt(Math.max(0, h));
+
+/** Distancia aproximada al horizonte de la mar, en millas, para h en metros. */
+const horizonDistance = (h) => 2.08 * Math.sqrt(Math.max(0, h));
+
+/** Refracción astronómica media en minutos de arco (fórmula de Bennett). */
+function refraction(alt) {
+  const h = Math.max(alt, -1);
+  return 1 / Math.tan((h + 7.31 / (h + 4.4)) * DEG);
+}
+
+/** Punto determinante: desplazamiento (millas) desde la situación de estima. */
+const interceptPoint = (Z, da) => ({ e: da * Math.sin(Z * DEG), n: da * Math.cos(Z * DEG) });
+
+/**
+ * Corte de dos rectas de altura (método de Marcq Saint-Hilaire).
+ * Devuelve el desplazamiento {e, n} en millas desde la estima, o null si son paralelas.
+ */
+function fixFromTwoLines(Z1, d1, Z2, d2) {
+  const a1 = Math.sin(Z1 * DEG), b1 = Math.cos(Z1 * DEG);
+  const a2 = Math.sin(Z2 * DEG), b2 = Math.cos(Z2 * DEG);
+  const det = a1 * b2 - a2 * b1;
+  if (Math.abs(det) < 1e-6) return null;
+  return { e: (d1 * b2 - d2 * b1) / det, n: (a1 * d2 - a2 * d1) / det };
+}
+
+return { altAz, diurnal, julianDay, sunForDay, refraction, fixFromTwoLines, upperCulmination, lowerCulmination, subastral, lhaFrom, dip, horizonDistance, interceptPoint };
+})();
+
+// src/figures/subastral.js
+const __m5 = (function () {
+const { Y, arc, small, gc, geo, offsetOnSphere, clamp } = __m0;
+const { CX, CY, R, W, H } = __m3;
+const { subastral } = __m4;
+const { dm, fLat, fLon, fDist } = __m1;
+
+const __default = {
+  id: 'subastral',
+  group: 'tierra',
+  name: 'Punto subastral y círculo de altura',
+  desc: 'Todos los que miden la misma altura están en un círculo',
+  view: { yaw: 55, pitch: 20 },
+  params: [
+    { k: 'dec', kind: 'angle', sym: 'dec', label: 'Declinación del astro', min: -89, max: 89, def: 20, hem: ['N', 'S'],
+      help: 'Es la latitud del punto subastral.' },
+    { k: 'gha', kind: 'angle', sym: 'haG', label: 'Horario en Greenwich del astro', min: 0, max: 360, def: 60, suffix: 'hacia el W',
+      help: 'Da la longitud del punto subastral: hasta 180° es longitud W; de 180° a 360°, longitud E.' },
+    { k: 'alt', kind: 'angle', sym: 'alt', label: 'Altura observada', min: 1, max: 89, def: 50,
+      help: 'El radio del círculo es la distancia cenital, 90° menos la altura.' },
+    { k: 'bear', kind: 'angle', label: 'Posición del observador en el círculo', min: 0, max: 360, def: 200, suffix: 'desde el N',
+      help: 'Solo mueve el observador de ejemplo: cualquier punto del círculo mide la misma altura.' },
+  ],
+  opts: [
+    ['rayo', 'El astro en la vertical del punto subastral', true],
+    ['coords', 'Coordenadas del punto subastral', true],
+    ['observador', 'Un observador sobre el círculo', true],
+    ['radio', 'Radio del círculo (distancia cenital)', true],
+    ['grid', 'Red de meridianos y paralelos', true],
+    ['plano', 'Sombrear el plano del ecuador', false],
+  ],
+  astro: { type: 'sol', name: 'Sol' },
+  caption: 'Punto subastral y círculo de alturas iguales.',
+  animations: [
+    { label: 'El observador recorre el círculo', param: 'bear', from: 0, to: 360 },
+    { label: 'El astro avanza hacia el oeste', param: 'gha', from: 0, to: 120 },
+    { label: 'Cambiar la altura observada', param: 'alt', from: 15, to: 80 },
+  ],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N, { dec, gha, alt, bear } = p;
+    const g = subastral(dec, gha);
+    const G = geo(g.lat, g.lon);
+    const E0 = geo(0, 0), E90 = geo(0, 90);
+    const z = 90 - alt;
+    const O = offsetOnSphere(G, z, bear);
+    const oLon = Math.atan2(O[0], O[2]) * 57.29577951308232;
+
+    F.step(1, 'La Tierra');
+    if (o.plano) F.fillPlane(arc(E0, E90, 0, 360, 4), F.pal.plane);
+    if (o.grid) {
+      for (const la of [-60, -30, 30, 60]) F.curve(small(Y, 90 - la), 'grid');
+      for (let lo = -150; lo <= 180; lo += 30) if (lo !== 0) F.curve(arc(geo(0, lo), Y, -90, 90), 'grid');
+    }
+    F.curve(arc(E0, E90, 0, 360), 'ref');
+    F.seg([0, -1.2, 0], [0, 1.2, 0], 'ref2');
+    F.curve(arc(E0, Y, -90, 90), 'ref');
+    F.labR('pn', 'Pn', [0, 1.2, 0], 10);
+    F.labR('ps', 'Ps', [0, -1.2, 0], 10);
+    F.labR('greenwich', 'Greenwich', geo(55, 0), 10, { italic: true, scale: 0.85 });
+    const ea = F.pickAngle((a) => geo(0, a), [0, g.lon, oLon]);
+    F.labT('ecuador', 'Ecuador', geo(0, ea), geo(-10, ea), 10, { italic: true, scale: 0.9 });
+
+    F.step(2, 'El astro y su punto subastral');
+    const s = F.P(G);
+    if (o.rayo) {
+      // El astro se dibuja fuera del globo, en la dirección del punto subastral
+      // (o arriba a la derecha si el punto queda en el centro del disco).
+      const l = Math.hypot(s[0] - CX, s[1] - CY);
+      const k = clamp(l / (0.45 * R), 0, 1);
+      let dx = 0.45 * (1 - k) + (l > 0 ? ((s[0] - CX) / l) * k : 0);
+      let dy = -1 * (1 - k) + (l > 0 ? ((s[1] - CY) / l) * k : 0);
+      const m = Math.hypot(dx, dy) || 1;
+      dx /= m; dy /= m;
+      const st = [clamp(CX + dx * R * 1.28, 70, W - 70), clamp(CY + dy * R * 1.28, 60, H - 70)];
+      F.path([st, [s[0], s[1]]], 'ref2', { kind: s[2] < 0 ? 'back' : 'dash', arrow: s[2] >= 0 });
+      F.astroAt(st, ctx.astroType, false);
+      F.place('astro', ctx.astroName || '', st, dx, dy, 24, { bold: true });
+    }
+    F.dot(G, F.pal.dot, 6);
+    F.place('gp', 'Punto subastral', [s[0], s[1]], 0.75, 0.66, 12, { bold: true, scale: 0.9 });
+    if (o.coords) {
+      F.curve(arc(geo(0, g.lon), Y, -90, 90), 'ref2');
+      F.curve(arc(geo(0, g.lon), Y, 0, g.lat), 'c2', { arrow: 'trim' });
+      F.labT('gplat', F.val(N.dec, fLat(dec), 'Declinación'), geo(g.lat / 2, g.lon), geo(g.lat / 2, g.lon - 10), 12, { col: F.pal.c2 });
+      F.curve(arc(E0, E90, 0, g.lon), 'c3', { arrow: 'end' });
+      F.labT('gplon', F.val(N.haG, dm(gha), 'Horario en Greenwich'), geo(0, g.lon / 2), geo(g.lat >= 0 ? -10 : 10, g.lon / 2), 12, { col: F.pal.c3 });
+    }
+
+    F.step(3, 'Círculo de alturas iguales');
+    F.curve(small(G, z), 'c1');
+    const lp = offsetOnSphere(G, z, bear + 110);
+    F.labR('circulo', 'Círculo de alturas iguales', lp, 14, { col: F.pal.c1, scale: 0.9, italic: true });
+
+    if (o.observador) {
+      F.step(4, 'Un observador sobre el círculo');
+      if (o.radio) {
+        F.curve(gc(G, O), 't1', { dash: true });
+        const txt = F.vals ? `${N.zd} = ${dm(z)} = ${fDist(z * 60, F.dist, 0)}` : `${N.zd} = 90° − ${N.alt}`;
+        // Rótulo a un lado del radio, por la parte de fuera de las coordenadas.
+        const a = F.P(G), b = F.P(O), mid = F.P(offsetOnSphere(G, z / 2, bear));
+        let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+        const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+        if (nx < 0) { nx = -nx; ny = -ny; }
+        F.place('radio', F.words ? `Distancia cenital ${dm(z)} (${fDist(z * 60, F.dist, 0)})` : txt, mid, nx, ny, 10, { col: F.pal.c1, scale: 0.85 });
+      }
+      F.dot(O, F.pal.ink, 5.5);
+      F.labR('obs', F.vals ? `Observador: ${N.alt} = ${dm(alt)}` : 'Observador', O, 14, { scale: 0.9 });
+    }
+  },
+
+  compute(p, o, ctx = {}) {
+    const g = subastral(p.dec, p.gha);
+    const z = 90 - p.alt;
+    return [
+      ['Latitud del punto subastral', fLat(g.lat)],
+      ['Longitud del punto subastral', fLon(g.lon)],
+      ['Distancia cenital (radio)', dm(z)],
+      ctx.dist === 'km'
+        ? ['Radio en kilómetros (1′ = 1 milla = 1,852 km)', fDist(z * 60, 'km', 0)]
+        : ['Radio en millas (1′ = 1 milla)', fDist(z * 60, 'mi', 0)],
+      ['Altura medida en todo el círculo', dm(p.alt)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/ecuatoriales.js
+const __m6 = (function () {
+const { DEG, Y, arc, small, add, mul, mod360, rot } = __m0;
+const { dm, fLat, fHours } = __m1;
+
+const __default = {
+  id: 'ecuatoriales',
+  group: 'celeste',
+  name: 'Coordenadas ecuatoriales',
+  desc: 'Declinación y horario de un astro',
+  view: { yaw: 30, pitch: 15 },
+  params: [
+    { k: 'dec', kind: 'angle', sym: 'dec', label: 'Declinación del astro', min: -90, max: 90, def: 25, hem: ['N', 'S'],
+      help: 'Distancia angular del astro al ecuador celeste.' },
+    { k: 't', kind: 'angle', sym: 'ha', label: 'Horario del lugar', min: 0, max: 360, def: 50, suffix: 'hacia el W',
+      help: 'Arco de ecuador desde el meridiano del lugar hasta el círculo horario del astro, contado hacia el oeste.' },
+    { k: 'tA', kind: 'angle', sym: 'haA', label: 'Horario de Aries', min: 0, max: 360, def: 340, suffix: 'hacia el W',
+      help: 'Solo se usa si activas el punto Aries.' },
+  ],
+  opts: [
+    ['grid', 'Red de paralelos y círculos horarios', false],
+    ['aries', 'Punto Aries y ángulo sidéreo', false],
+    ['paralelo', 'Paralelo de declinación', false],
+    ['cardinales', 'Letras W y E sobre el ecuador', true],
+    ['plano', 'Sombrear el plano del ecuador', true],
+  ],
+  astro: { type: 'estrella', name: 'Astro' },
+  caption: 'Coordenadas ecuatoriales: declinación y horario del lugar.',
+  animations: [
+    { label: 'El astro recorre su paralelo', param: 't', from: 0, to: 360 },
+    { label: 'Cambiar la declinación', param: 'dec', from: -60, to: 60 },
+  ],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N, { dec, t, tA } = p;
+    const M = [0, 0, 1], w = [-1, 0, 0];
+    const eq = (th) => rot(M, w, th);
+    const X = rot(eq(t), Y, dec);
+
+    F.step(1, 'Ecuador celeste, polos y meridiano');
+    if (o.plano) F.fillPlane(arc(M, w, 0, 360, 4), F.pal.plane);
+    if (o.grid) {
+      for (const d of [-60, -30, 30, 60]) F.curve(small(Y, 90 - d), 'grid');
+      for (let h = 30; h < 360; h += 30) F.curve(arc(eq(h), Y, -90, 90), 'grid');
+    }
+    F.curve(arc(M, w, 0, 360), 'ref');
+    F.seg([0, -1.2, 0], [0, 1.2, 0], 'ref2');
+    F.curve(arc(M, Y, -90, 90), 'ref');
+    F.labR('pn', 'Pn', [0, 1.2, 0], 10);
+    F.labR('ps', 'Ps', [0, -1.2, 0], 10);
+    const ea = F.pickAngle(eq, [0, t, ...(o.aries ? [tA] : []), ...(o.cardinales ? [90, 270] : [])], F.curved ? 0 : 0.5);
+    F.labCurve('ecuador', 'Ecuador celeste', arc(M, w, ea - 40, ea + 40), 'out',
+      () => F.labT('ecuador', 'Ecuador celeste', eq(ea), rot(eq(ea), Y, -10), 10, { italic: true }), { italic: true });
+    F.labR('meridiano', 'Meridiano superior del lugar', rot(M, Y, 58), 10, { italic: true, scale: 0.85 });
+    if (o.cardinales) { F.labR('W', 'W', eq(90), 14, { bold: true }); F.labR('E', 'E', eq(-90), 14, { bold: true }); }
+
+    F.step(2, 'El astro y su círculo horario');
+    F.curve(arc(eq(t), Y, -90, 90), 'ref2');
+    if (o.paralelo && Math.abs(dec) < 89.5) F.curve(small(Y, 90 - dec), 'ref2');
+    F.astro(X, ctx.astroType);
+    F.labR('astro', ctx.astroName || '', X, 20, { bold: true });
+    F.labR('horario', 'Círculo horario del astro', rot(eq(t), Y, dec >= 0 ? -40 : 40), 10, { italic: true, scale: 0.85 });
+
+    F.step(3, 'Declinación');
+    F.curve(arc(eq(t), Y, 0, dec), 'c1', { arrow: 'trim' });
+    F.labT('dec', F.val(N.dec, fLat(dec), 'Declinación'), rot(eq(t), Y, dec / 2), rot(eq(t + 10), Y, dec / 2), 12, { col: F.pal.c1 });
+
+    F.step(4, 'Horario del lugar');
+    F.curve(arc(M, w, 0, t), 'c2', { arrow: 'end' });
+    const below = (dec >= 0 ? -10 : 10) * (o.aries ? -1 : 1);
+    F.labT('t', F.val(N.ha, dm(t), 'Horario'), eq(t / 2), rot(eq(t / 2), Y, below), 12, { col: F.pal.c2 });
+
+    if (o.aries) {
+      F.step(5, 'Punto Aries y ángulo sidéreo');
+      const AS = mod360(t - tA);
+      const offD = dec >= 0 ? -7 : 7;
+      const par = (th) => add(mul(eq(th), Math.cos(offD * DEG)), mul(Y, Math.sin(offD * DEG)));
+      F.curve(arc(eq(tA), Y, -90, 90), 'grid');
+      const n = Math.max(2, Math.ceil(AS / 2));
+      const pts = [];
+      for (let i = 0; i <= n; i++) pts.push(par(tA + (AS * i) / n));
+      F.curve(pts, 'c3', { arrow: 'end' });
+      F.seg(eq(tA), par(tA), 't3');
+      F.seg(eq(t), par(t), 't3');
+      F.dot(eq(tA), F.pal.c3, 5);
+      F.labR('aries', 'γ', eq(tA), 14, { bold: true, scale: 1.15, col: F.pal.c3 });
+      F.labT('as', F.val(N.sha, dm(AS), 'Ángulo sidéreo'), par(tA + AS / 2), rot(eq(tA + AS / 2), Y, dec >= 0 ? -17 : 17), 12, { col: F.pal.c3 });
+    }
+  },
+
+  compute(p) {
+    const AS = mod360(p.t - p.tA);
+    return [
+      ['Declinación', fLat(p.dec)],
+      ['Horario del lugar', `${dm(p.t)} (${fHours(p.t)})`],
+      ['Distancia polar', dm(90 - p.dec)],
+      ['Ángulo sidéreo (si se usa Aries)', dm(AS)],
+      ['Ascensión recta (360° − AS)', `${dm(mod360(360 - AS))} (${fHours(360 - AS)})`],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/horizontales.js
+const __m7 = (function () {
+const { Y, arc, small, hor, vert, rot } = __m0;
+const { dm, fAz3 } = __m1;
+
+const __default = {
+  id: 'horizontales',
+  group: 'celeste',
+  name: 'Coordenadas horizontales',
+  desc: 'Altura y azimut sobre el horizonte',
+  view: { yaw: -90, pitch: 15 },
+  params: [
+    { k: 'alt', kind: 'angle', sym: 'alt', label: 'Altura del astro', min: 0, max: 90, def: 40,
+      help: 'Arco de vertical desde el horizonte hasta el astro.' },
+    { k: 'az', kind: 'angle', sym: 'az', label: 'Azimut', min: 0, max: 360, def: 50, suffix: 'desde el N hacia el E',
+      help: 'Arco de horizonte desde el norte hasta el vertical del astro.' },
+  ],
+  opts: [
+    ['lineas', 'Líneas del observador a la estrella, a su pie y al N', true],
+    ['obs', 'Observador y línea al cénit', true],
+    ['cardinales', 'Los cuatro puntos cardinales (si no, solo el N)', false],
+    ['zd', 'Distancia cenital', false],
+    ['almic', 'Almicantarat del astro', false],
+    ['primer', 'Primer vertical (E–W)', false],
+    ['nadir', 'Nadir', false],
+    ['grid', 'Red de almicantarats y verticales', false],
+    ['plano', 'Sombrear el plano del horizonte', true],
+    ['sombra', 'Sombrear la media esfera bajo el horizonte', true],
+  ],
+  astro: { type: 'punto', name: 'Estrella' },
+  caption: 'Coordenadas horizontales: altura y azimut.',
+  animations: [
+    { label: 'Dar la vuelta al horizonte', param: 'az', from: 0, to: 360 },
+    { label: 'Del horizonte al cénit', param: 'alt', from: 0, to: 90 },
+  ],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N, { alt, az } = p;
+    const H0 = hor(0), H90 = hor(90);
+    const X = vert(az, alt), O = [0, 0, 0];
+
+    F.step(1, 'El observador y el horizonte');
+    if (o.sombra) F.bowl();
+    if (o.plano) F.fillPlane(arc(H0, H90, 0, 360, 4), F.pal.plane);
+    if (o.grid) {
+      for (const a of [30, 60]) F.curve(small(Y, 90 - a), 'grid');
+      for (let z = 30; z < 360; z += 30) if (z % 90) F.curve(arc(hor(z), Y, 0, 90), 'grid');
+    }
+    F.curve(arc(H0, H90, 0, 360), 'ref');
+    if (o.obs || o.lineas) {
+      const s = F.P(O);
+      F.dotS(s[0], s[1], F.pal.ink, 6);
+      F.lab('O', F.words ? 'Observador' : 'O', s[0] - 12, s[1] + F.fs * 0.35, { anchor: 'end' });
+    }
+    const ha = F.pickAngle(hor, [0, 90, 180, 270, az, az / 2]);
+    F.labCurve('horizonte', 'Horizonte', arc(H0, H90, ha - 28, ha + 28), 'in',
+      () => F.labT('horizonte', 'Horizonte', hor(ha), rot(hor(ha), Y, -10), 10, { italic: !F.words }), { italic: !F.words });
+
+    F.step(2, 'Cénit, meridiano y norte');
+    F.curve(arc(H0, Y, 0, 360), 'ref2');
+    if (o.primer) F.curve(arc(H90, Y, 0, 360), 'grid');
+    if (o.obs) F.line(O, Y, 'ref2', 'dot');
+    if (o.lineas) F.line(O, H0, 'ref2', 'dot');
+    F.dot(Y, F.pal.ink, 4);
+    if (o.nadir) { F.dot([0, -1, 0], F.pal.ink, 4); F.labR('nadir', 'Nadir', [0, -1, 0], 12); }
+    F.labR('cenit', F.words ? 'Cénit' : 'Cenit', Y, 12);
+    const cards = o.cardinales ? [['N', 0], ['E', 90], ['S', 180], ['W', 270]] : [['N', 0]];
+    for (const [k, a] of cards) if (F.V(hor(a))[2] > -0.35) F.labR('c' + k, k, hor(a), 12, { bold: !F.words, scale: 1.1 });
+    F.labCurve('meridiano', F.words ? 'Meridiano celeste' : 'Meridiano del lugar', arc(H0, Y, 105, 165), 'out',
+      () => F.labR('meridiano', 'Meridiano del lugar', vert(0, 50), 10, { italic: true, scale: 0.85 }), { italic: !F.words });
+
+    F.step(3, 'La estrella y su vertical');
+    if (o.lineas) { F.line(O, X, 'ref2'); F.line(O, hor(az), 'ref2'); }
+    F.curve(arc(hor(az), Y, 0, 90), 'ref2');
+    if (o.almic && alt < 89.5) {
+      F.curve(small(Y, 90 - alt), 'ref2');
+      if (alt < 80) F.labT('almic', 'Almicantarat', vert(az + 90, alt), vert(az + 90, alt + 10), 8, { italic: true, scale: 0.85 });
+    }
+    F.astro(X, ctx.astroType);
+    F.labR('astro', ctx.astroName || '', X, 18, { bold: !F.words });
+
+    const side = (a) => vert(az + 12, a);
+    F.step(4, 'Azimut');
+    const azP = arc(H0, H90, 0, az);
+    F.curve(azP, 'c2', { arrow: 'end' });
+    const azT = F.val(N.az, dm(az), 'Azimut');
+    F.labCurve('az', azT, azP, 'out', () => {
+      const am = hor(az / 2);
+      F.labT('az', azT, am, rot(am, Y, -10), 12, { col: F.pal.c2 });
+    }, { col: F.pal.c2 });
+
+    F.step(5, 'Altura');
+    const altP = arc(hor(az), Y, 0, alt);
+    F.curve(altP, 'c1', { arrow: 'trim' });
+    const altT = F.val(N.alt, dm(alt), 'Altura');
+    F.labCurve('alt', altT, altP, 'in', () => F.labT('alt', altT, vert(az, alt / 2), side(alt / 2), 12, { col: F.pal.c1 }), { col: F.pal.c1 });
+
+    if (o.zd) {
+      F.step(6, 'Distancia cenital');
+      const zdP = arc(hor(az), Y, 90, alt);
+      F.curve(zdP, 'c3', { arrow: 'trim' });
+      const zt = F.words ? F.val('', dm(90 - alt), 'Distancia cenital') : F.vals ? `${N.zd} = 90° − ${N.alt} = ${dm(90 - alt)}` : N.zd;
+      F.labCurve('zd', zt, zdP, 'in', () => F.labT('zd', zt, vert(az, (alt + 90) / 2), side((alt + 90) / 2), 12, { col: F.pal.c3 }), { col: F.pal.c3 });
+    }
+  },
+
+  compute(p) {
+    return [
+      ['Altura', dm(p.alt)],
+      ['Azimut', `${dm(p.az)} (${fAz3(p.az)})`],
+      ['Distancia cenital (90° − altura)', dm(90 - p.alt)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/triangulo.js
+const __m8 = (function () {
+const { Y, arc, gc, angArc, clamp, dot, mul, rot, mod360, hor, vert } = __m0;
+const { altAz } = __m4;
+const { dm, fLat, fAz3 } = __m1;
+
+function zNautical(Az, lat) {
+  if (lat >= 0) return Az <= 180 ? `N ${dm(Az)} E` : `N ${dm(360 - Az)} W`;
+  return Az <= 180 ? `S ${dm(180 - Az)} E` : `S ${dm(Az - 180)} W`;
+}
+
+const __default = {
+  id: 'triangulo',
+  group: 'celeste',
+  name: 'Triángulo de posición',
+  desc: 'Polo, cénit y astro en la esfera celeste',
+  view: { yaw: 125, pitch: 32 },
+  params: [
+    { k: 'lat', kind: 'angle', sym: 'lat', label: 'Latitud del observador', min: -89, max: 89, def: 40, hem: ['N', 'S'] },
+    { k: 'dec', kind: 'angle', sym: 'dec', label: 'Declinación del astro', min: -89, max: 89, def: 20, hem: ['N', 'S'] },
+    { k: 't', kind: 'angle', sym: 'ha', label: 'Horario del lugar', min: 0, max: 360, def: 50, suffix: 'hacia el W' },
+  ],
+  opts: [
+    ['ext', 'Prolongar hasta el ecuador y el horizonte', false],
+    ['angulos', 'Ángulos en el polo y en el cénit', true],
+    ['relleno', 'Sombrear el triángulo', true],
+    ['resultado', 'Altura y azimut calculados al pie', true],
+    ['plano', 'Sombrear el plano del horizonte', true],
+  ],
+  astro: { type: 'estrella', name: 'Astro' },
+  caption: 'El triángulo de posición.',
+  animations: [
+    { label: 'El astro avanza hacia el oeste', param: 't', from: 300, to: 60 },
+    { label: 'Cambiar la latitud', param: 'lat', from: 10, to: 70 },
+  ],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N, { lat, dec, t } = p;
+    const sg = lat >= 0 ? 1 : -1;
+    if (lat < 0) F.setView({ yaw: F.view.yaw + 180, pitch: F.view.pitch });
+    const H0 = hor(0), H90 = hor(90);
+    const PN = vert(0, lat), PS = mul(PN, -1), Pe = sg > 0 ? PN : PS;
+    const M = vert(180, 90 - lat), w = [-1, 0, 0];
+    const eq = (th) => rot(M, w, th);
+    const X = rot(eq(t), PN, dec);
+    const { alt: a, az: Az } = altAz(lat, dec, t);
+
+    F.step(1, 'Horizonte, ecuador y polos');
+    if (o.plano) F.fillPlane(arc(H0, H90, 0, 360, 4), F.pal.plane);
+    F.curve(arc(H0, H90, 0, 360), 'ref');
+    F.curve(arc(H0, Y, 0, 360), 'ref2');
+    F.curve(arc(M, w, 0, 360), 'eq');
+    F.seg(mul(PS, 1.2), mul(PN, 1.2), 'ref2');
+    F.labR('pn', sg > 0 ? 'Pn' : 'Ps', mul(Pe, 1.2), 10, { bold: true });
+    F.labR('ps', sg > 0 ? 'Ps' : 'Pn', mul(Pe, -1.2), 10);
+    for (const [k, an] of [['N', 0], ['E', 90], ['S', 180], ['W', 270]]) {
+      if (F.V(hor(an))[2] > -0.35) F.labR('c' + k, k, hor(an), 14, { bold: true });
+    }
+    const ea = F.pickAngle(eq, [0, t, t / 2, 90, 270]);
+    F.labT('ecuador', 'Ecuador celeste', eq(ea), rot(eq(ea), PN, -10), 10, { italic: true, scale: 0.85, col: F.pal.eqc });
+    const ha = F.pickAngle(hor, [0, 90, 180, 270, Az]);
+    F.labT('horizonte', 'Horizonte', hor(ha), rot(hor(ha), Y, -10), 10, { italic: true, scale: 0.85 });
+
+    F.step(2, 'Polo elevado, cénit y astro');
+    F.dot(Y, F.pal.ink, 4);
+    F.dot(Pe, F.pal.ink, 4);
+    F.labR('cenit', F.words ? 'Cénit' : 'Cenit', Y, 12, { bold: true });
+    F.astro(X, ctx.astroType);
+    F.labR('astro', ctx.astroName || '', X, 22, { bold: true });
+
+    const s1 = gc(Pe, Y), s2 = gc(Y, X), s3 = gc(X, Pe);
+    const cen = [Pe, Y, X].map((q) => F.P(q)).reduce((s, q) => [s[0] + q[0] / 3, s[1] + q[1] / 3], [0, 0]);
+    const mid = (pts) => pts[Math.floor(pts.length / 2)];
+    const dp = 90 - sg * dec, cl = 90 - Math.abs(lat), zd = 90 - a;
+
+    F.step(3, 'Colatitud: del polo al cénit');
+    F.curve(s1, 'c2');
+    F.labAway('colat', F.words ? F.val('', dm(cl), 'Colatitud') : F.vals ? `90° − ${N.lat} = ${dm(cl)}` : `90° − ${N.lat}`, mid(s1), cen, 12, { col: F.pal.c2 });
+
+    F.step(4, 'Distancia polar: del polo al astro');
+    F.curve(s3, 'c1');
+    F.labAway('codec', F.words ? F.val('', dm(dp), 'Distancia polar') : F.vals ? `90° − ${N.dec} = ${dm(dp)}` : `90° − ${N.dec}`, mid(s3), cen, 12, { col: F.pal.c1 });
+
+    F.step(5, 'Distancia cenital: del cénit al astro');
+    F.curve(s2, 'c3');
+    F.labAway('zd', F.words ? F.val('', dm(zd), 'Distancia cenital') : F.vals ? `${N.zd} = 90° − ${N.alt} = ${dm(zd)}` : `${N.zd} = 90° − ${N.alt}`, mid(s2), cen, 12, { col: F.pal.c3 });
+
+    if (o.relleno || o.angulos || o.ext || o.resultado) {
+      F.step(6, 'Ángulos y resultado');
+      if (o.relleno) F.fillPlane([...s1, ...s2, ...s3], F.pal.tri);
+      if (o.angulos) {
+        const rr = clamp((Math.min(Math.acos(clamp(dot(Pe, Y), -1, 1)), Math.acos(clamp(dot(Pe, X), -1, 1)), Math.acos(clamp(dot(Y, X), -1, 1))) / (Math.PI / 180)) * 0.28, 6, 16);
+        const A1 = angArc(Pe, Y, X, rr), A2 = angArc(Y, Pe, X, rr);
+        if (A1) { F.curve(A1.pts, 'ang'); F.labAt('angP', 'P', A1.mid, { bold: true }); }
+        if (A2) { F.curve(A2.pts, 'ang'); F.labAt('angZ', N.az, A2.mid, { bold: true }); }
+      }
+      if (o.ext) {
+        F.curve(arc(eq(t), PN, 0, dec), 't1');
+        F.curve(arc(hor(Az), Y, 0, a), 't2');
+        F.labAway('extdec', F.words ? 'Declinación' : N.dec, rot(eq(t), PN, dec / 2), cen, 10, { col: F.pal.c1, scale: 0.85 });
+        F.labAway('extalt', F.words ? 'Altura' : N.alt, vert(Az, a / 2), cen, 10, { col: F.pal.c2, scale: 0.85 });
+      }
+      if (o.resultado) {
+        const tt = mod360(t);
+        const Pv = tt <= 180 ? `${dm(tt)} W` : `${dm(360 - tt)} E`;
+        F.lab('res1', `Ángulo en el polo: P = ${Pv}\u2003\u2003Azimut: ${N.az} = ${zNautical(Az, lat)} = ${fAz3(Az)}`, 40, 722, { anchor: 'start', scale: 0.85 });
+        F.lab('res', `Altura: ${N.alt} = ${a < 0 ? '−' : ''}${dm(a)}\u2003\u2003Distancia cenital: ${N.zd} = ${dm(zd)}`, 40, 752, { anchor: 'start', scale: 0.85 });
+      }
+    }
+  },
+
+  compute(p) {
+    const { alt, az } = altAz(p.lat, p.dec, p.t);
+    return [
+      ['Latitud', fLat(p.lat)],
+      ['Declinación', fLat(p.dec)],
+      ['Colatitud', dm(90 - Math.abs(p.lat))],
+      ['Distancia polar', dm(90 - Math.sign(p.lat || 1) * p.dec)],
+      ['Altura calculada', `${alt < 0 ? '−' : ''}${dm(alt)}`],
+      ['Azimut calculado', `${dm(az)} (${fAz3(az)})`],
+      ['Distancia cenital', dm(90 - alt)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/diurno.js
+const __m9 = (function () {
+const { Y, arc, add, sub, mul, rot, hor, vert } = __m0;
+const { altAz, diurnal, upperCulmination, lowerCulmination } = __m4;
+const { dm, fLat, fAz3, fNum } = __m1;
+
+/** Dibuja una curva separando lo que queda sobre el horizonte (y ≥ 0) de lo que queda bajo él. */
+function splitHorizon(F, pts, catUp, catDown) {
+  const runs = [];
+  let up = pts[0][1] >= 0, run = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], ub = b[1] >= 0;
+    if (ub === up) run.push(b);
+    else {
+      const t = a[1] / (a[1] - b[1]);
+      const m = add(a, mul(sub(b, a), t));
+      run.push(m); runs.push({ up, run }); run = [m, b]; up = ub;
+    }
+  }
+  runs.push({ up, run });
+  for (const r of runs) {
+    if (r.run.length < 2) continue;
+    if (r.up) F.curve(r.run, catUp); else F.curve(r.run, catDown, { dash: true });
+  }
+}
+
+const KIND = { circumpolar: 'Circumpolar: nunca se pone', nunca: 'Nunca sale sobre el horizonte', orto: 'Sale y se pone' };
+
+const __default = {
+  id: 'diurno',
+  group: 'celeste',
+  name: 'Movimiento diurno',
+  desc: 'Orto, ocaso y astros circumpolares',
+  view: { yaw: -110, pitch: 16 },
+  params: [
+    { k: 'lat', kind: 'angle', sym: 'lat', label: 'Latitud del observador', min: -89, max: 89, def: 40, hem: ['N', 'S'] },
+    { k: 'dec', kind: 'angle', sym: 'dec', label: 'Declinación del astro', min: -89, max: 89, def: 20, hem: ['N', 'S'] },
+    { k: 't', kind: 'angle', sym: 'ha', label: 'Horario del lugar del astro', min: 0, max: 360, def: 290, suffix: 'hacia el W',
+      help: 'Mueve el astro sobre su paralelo. Anímalo para ver un día entero.' },
+  ],
+  opts: [
+    ['orto', 'Orto, ocaso y pasos por el meridiano', true],
+    ['tipos', 'Ejemplos de astro circumpolar y nunca visible', true],
+    ['polo', 'Altura del polo igual a la latitud', true],
+    ['ecuador', 'Ecuador celeste', true],
+    ['cardinales', 'Los cuatro puntos cardinales', true],
+    ['plano', 'Sombrear el plano del horizonte', true],
+    ['sombra', 'Sombrear la media esfera bajo el horizonte', false],
+  ],
+  astro: { type: 'estrella', name: 'Astro' },
+  caption: 'Movimiento diurno de los astros.',
+  animations: [
+    { label: 'Un día completo', param: 't', from: 0, to: 360 },
+    { label: 'Viajar hacia el norte', param: 'lat', from: 0, to: 80 },
+  ],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N, { lat, dec, t } = p;
+    const sg = lat >= 0 ? 1 : -1;
+    const H0 = hor(0), H90 = hor(90);
+    const PN = vert(0, lat), PS = mul(PN, -1), Pe = sg > 0 ? PN : PS;
+    const M = vert(180, 90 - lat), w = [-1, 0, 0];
+    const eq = (th) => rot(M, w, th);
+    const onPar = (d) => (th) => rot(eq(th), PN, d);
+    const circle = (d) => { const f = onPar(d), pts = []; for (let th = 180; th <= 540; th += 2) pts.push(f(th)); return pts; };
+
+    F.step(1, 'Horizonte, cénit y polo elevado');
+    if (o.sombra) F.bowl();
+    if (o.plano) F.fillPlane(arc(H0, H90, 0, 360, 4), F.pal.plane);
+    F.curve(arc(H0, H90, 0, 360), 'ref');
+    F.curve(arc(H0, Y, 0, 360), 'ref2');
+    F.seg(mul(PS, 1.2), mul(PN, 1.2), 'ref2');
+    F.dot(Y, F.pal.ink, 4);
+    F.dot(Pe, F.pal.ink, 4);
+    F.labR('cenit', F.words ? 'Cénit' : 'Cenit', Y, 12, { bold: true });
+    F.labR('pe', sg > 0 ? 'Pn' : 'Ps', mul(Pe, 1.2), 10, { bold: true });
+    F.labR('pd', sg > 0 ? 'Ps' : 'Pn', mul(Pe, -1.2), 10);
+    const cards = o.cardinales ? [['N', 0], ['E', 90], ['S', 180], ['W', 270]] : [[sg > 0 ? 'N' : 'S', sg > 0 ? 0 : 180]];
+    for (const [k, a] of cards) if (F.V(hor(a))[2] > -0.35) F.labR('c' + k, k, hor(a), 12, { bold: true });
+    const ha = F.pickAngle(hor, [0, 90, 180, 270]);
+    F.labT('horizonte', 'Horizonte', hor(ha), rot(hor(ha), Y, -10), 10, { italic: true, scale: 0.9 });
+    if (o.polo) {
+      const base = sg > 0 ? 0 : 180;
+      const pts = arc(hor(base), Y, 0, Math.abs(lat));
+      F.curve(pts, 'c2', { arrow: 'trim' });
+      const txt = F.words ? `Altura del polo = ${dm(Math.abs(lat))}` : F.vals ? `${N.lat} = ${fLat(lat)}` : N.lat;
+      F.labR('polo', txt, vert(base, Math.abs(lat) / 2), 12, { col: F.pal.c2, scale: 0.9 });
+    }
+
+    if (o.ecuador) {
+      F.step(2, 'Ecuador celeste');
+      F.curve(arc(M, w, 0, 360), 'eq');
+      const ea = F.pickAngle(eq, [0, 90, 180, 270, t]);
+      F.labT('ecuador', 'Ecuador celeste', eq(ea), rot(eq(ea), PN, -10), 10, { italic: true, scale: 0.85, col: F.pal.eqc });
+    }
+
+    const s3 = o.ecuador ? 3 : 2;
+    F.step(s3, 'El astro describe su paralelo');
+    const f = onPar(dec);
+    splitHorizon(F, circle(dec), 'c1', 't1');
+    for (const th0 of [30, 210]) {
+      if (f(th0)[1] >= 0) { F.arrowHead([f(th0 - 14), f(th0 - 7), f(th0)], 'c1'); break; }
+    }
+    const X = f(t);
+    F.astro(X, ctx.astroType);
+    F.labR('astro', ctx.astroName || '', X, 20, { bold: true });
+
+    let s = s3;
+    if (o.orto) {
+      F.step(++s, 'Orto, ocaso y pasos por el meridiano');
+      const di = diurnal(lat, dec);
+      F.dot(f(0), F.pal.c1, 4.5);
+      F.labR('culsup', 'Culminación superior', f(0), 12, { scale: 0.8, italic: true });
+      F.dot(f(180), F.pal.c1, 4.5);
+      F.labR('culinf', 'Culminación inferior', f(180), 12, { scale: 0.8, italic: true });
+      if (di.kind === 'orto') {
+        F.dot(f(360 - di.t0), F.pal.c3, 5.5);
+        F.labR('orto', 'Orto', f(360 - di.t0), 14, { bold: true, col: F.pal.c3 });
+        F.dot(f(di.t0), F.pal.c3, 5.5);
+        F.labR('ocaso', 'Ocaso', f(di.t0), 14, { bold: true, col: F.pal.c3 });
+      }
+    }
+
+    if (o.tipos) {
+      const dc = 90 - Math.abs(lat) + 12;
+      if (dc < 87) {
+        F.step(++s, 'Astros circumpolares y nunca visibles');
+        const dUp = sg * dc, dDown = -sg * dc;
+        splitHorizon(F, circle(dUp), 't2', 't2');
+        splitHorizon(F, circle(dDown), 't3', 't3');
+        // Cada rótulo va en el punto más cercano al lector de su círculo.
+        const front = (d) => [0, 60, 120, 180, 240, 300].map((th) => onPar(d)(th)).sort((a, b) => F.V(b)[2] - F.V(a)[2])[0];
+        F.labR('circ', 'Circumpolar', front(dUp), 10, { italic: true, scale: 0.85, col: F.pal.c2 });
+        F.labR('nunca', 'Nunca visible', front(dDown), 10, { italic: true, scale: 0.85, col: F.pal.c3 });
+      }
+    }
+  },
+
+  compute(p) {
+    const di = diurnal(p.lat, p.dec);
+    const { alt, az } = altAz(p.lat, p.dec, p.t);
+    const up = upperCulmination(p.lat, p.dec);
+    const low = lowerCulmination(p.lat, p.dec);
+    const rows = [['Tipo de astro', KIND[di.kind]]];
+    rows.push(['Altura en la culminación superior', `${up < 0 ? '−' : ''}${dm(up)}`]);
+    rows.push(['Altura en la culminación inferior', `${low < 0 ? '−' : ''}${dm(low)}`]);
+    if (di.kind === 'orto') {
+      rows.push(['Arco semidiurno', dm(di.t0)]);
+      rows.push(['Horas sobre el horizonte', `${fNum((2 * di.t0) / 15, 1)} h aprox.`]);
+      rows.push(['Azimut del orto', fAz3(di.zOrto)]);
+      rows.push(['Azimut del ocaso', fAz3(di.zOcaso)]);
+    }
+    rows.push(['Altura ahora', `${alt < 0 ? '−' : ''}${dm(alt)}${alt < 0 ? ' (bajo el horizonte)' : ''}`]);
+    rows.push(['Azimut ahora', fAz3(az)]);
+    return rows;
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/ecliptica.js
+const __m10 = (function () {
+const { Y, arc, small, rot, angArc } = __m0;
+const { sunForDay } = __m4;
+const { dm, fLat, fHours, fDate } = __m1;
+
+// Esfera celeste con el polo norte arriba (Y). Aries en +z; la ascensión recta crece hacia +x (hacia el E).
+
+const POINTS = [
+  { l: 0, id: 'eqMar', text: 'Equinoccio de marzo' },
+  { l: 90, id: 'solJun', text: 'Solsticio de junio' },
+  { l: 180, id: 'eqSep', text: 'Equinoccio de septiembre' },
+  { l: 270, id: 'solDic', text: 'Solsticio de diciembre' },
+];
+
+const __default = {
+  id: 'ecliptica',
+  group: 'celeste',
+  name: 'La eclíptica y el Sol',
+  desc: 'Declinación del Sol a lo largo del año',
+  view: { yaw: 15, pitch: 28 },
+  params: [
+    { k: 'day', kind: 'day', label: 'Fecha', min: 0, max: 364, def: 140,
+      help: 'El Sol recorre la eclíptica una vez al año. Su declinación varía entre 23° 26′ N y 23° 26′ S.' },
+  ],
+  opts: [
+    ['estaciones', 'Equinoccios y solsticios', true],
+    ['tropicos', 'Trópicos (paralelos de ±23° 26′)', true],
+    ['eps', 'Oblicuidad de la eclíptica (ε)', true],
+    ['decl', 'Declinación del Sol', true],
+    ['ar', 'Ascensión recta del Sol', false],
+    ['grid', 'Red de paralelos y círculos horarios', false],
+    ['plano', 'Sombrear el plano del ecuador', true],
+  ],
+  astro: { type: 'sol', name: 'Sol' },
+  caption: 'El Sol sobre la eclíptica.',
+  animations: [{ label: 'Un año completo', param: 'day', from: 0, to: 364 }],
+
+  draw(F, p, o, ctx) {
+    F.sphere = true;
+    const N = F.N;
+    const s = sunForDay(Math.round(p.day));
+    const A = [0, 0, 1], B = [1, 0, 0];
+    const eqp = (a) => rot(A, B, a);
+    const Bk = rot(B, Y, s.eps);
+    const ecl = (l) => rot(A, Bk, l);
+    const S = ecl(s.lambda);
+
+    F.step(1, 'Esfera celeste y ecuador');
+    if (o.plano) F.fillPlane(arc(A, B, 0, 360, 4), F.pal.plane);
+    if (o.grid) {
+      for (const d of [-60, -30, 30, 60]) F.curve(small(Y, 90 - d), 'grid');
+      for (let h = 30; h < 360; h += 30) F.curve(arc(eqp(h), Y, -90, 90), 'grid');
+    }
+    F.curve(arc(A, B, 0, 360), 'ref');
+    F.seg([0, -1.2, 0], [0, 1.2, 0], 'ref2');
+    F.labR('pn', 'Pn', [0, 1.2, 0], 10);
+    F.labR('ps', 'Ps', [0, -1.2, 0], 10);
+    const ea = F.pickAngle(eqp, [0, 90, 180, 270, s.ra]);
+    F.labT('ecuador', 'Ecuador celeste', eqp(ea), rot(eqp(ea), Y, -12), 10, { italic: true, scale: 0.9 });
+
+    F.step(2, 'La eclíptica');
+    F.curve(arc(A, Bk, 0, 360), 'c3');
+    F.curve(arc(A, Bk, s.lambda + 12, s.lambda + 40), 'c3', { arrow: 'end' });
+    const la = F.pickAngle(ecl, [0, 90, 180, 270, s.lambda], 0.2);
+    F.labT('ecliptica', 'Eclíptica', ecl(la), rot(ecl(la), rot(Y, B, -s.eps), 12), 10, { italic: true, col: F.pal.c3 });
+    if (o.eps) {
+      const aa = angArc(A, B, ecl(40), 14);
+      if (aa) {
+        F.curve(aa.pts, 'ang');
+        F.labAt('eps', F.vals ? `${N.eps} = ${dm(s.eps)}` : N.eps, aa.mid, { scale: 0.9 });
+      }
+    }
+
+    F.step(3, 'Equinoccios y solsticios');
+    if (o.tropicos) {
+      F.curve(small(Y, 90 - s.eps), 'grid');
+      F.curve(small(Y, 90 + s.eps), 'grid');
+      F.labR('cancer', 'Trópico de Cáncer', rot(eqp(200), Y, s.eps), 8, { italic: true, scale: 0.8 });
+      F.labR('capri', 'Trópico de Capricornio', rot(eqp(200), Y, -s.eps), 8, { italic: true, scale: 0.8 });
+    }
+    if (o.estaciones) {
+      for (const q of POINTS) {
+        F.dot(ecl(q.l), F.pal.c3, 4.5);
+        F.labR(q.id, q.l === 0 ? `γ  ${q.text}` : q.text, ecl(q.l), 12, { scale: 0.85 });
+      }
+    }
+
+    F.step(4, 'El Sol en la fecha elegida');
+    F.astro(S, ctx.astroType);
+    F.labR('astro', `${ctx.astroName || 'Sol'} (${fDate(s.date)})`, S, 24, { bold: true });
+
+    if (o.decl || o.ar) {
+      F.step(5, 'Declinación y ascensión recta del Sol');
+      F.curve(arc(eqp(s.ra), Y, -90, 90), 'ref2');
+      if (o.decl) {
+        F.curve(arc(eqp(s.ra), Y, 0, s.dec), 'c1', { arrow: 'trim' });
+        F.labT('dec', F.val(N.dec, fLat(s.dec), 'Declinación'), rot(eqp(s.ra), Y, s.dec / 2), rot(eqp(s.ra + 12), Y, s.dec / 2), 12, { col: F.pal.c1 });
+      }
+      if (o.ar) {
+        F.curve(arc(A, B, 0, s.ra), 'c2', { arrow: 'end' });
+        F.labT('ar', F.val(N.ra, fHours(s.ra), 'Ascensión recta'), eqp(s.ra / 2), rot(eqp(s.ra / 2), Y, s.dec >= 0 ? -12 : 12), 12, { col: F.pal.c2 });
+      }
+    }
+  },
+
+  compute(p) {
+    const s = sunForDay(Math.round(p.day));
+    return [
+      ['Fecha', fDate(s.date)],
+      ['Declinación del Sol', fLat(s.dec)],
+      ['Ascensión recta', `${fHours(s.ra)} (${dm(s.ra)})`],
+      ['Longitud eclíptica', dm(s.lambda)],
+      ['Oblicuidad de la eclíptica', dm(s.eps)],
+    ];
+  },
+};
+
+
+return { default: __default };
+})();
+
+// src/figures/meridiana.js
+const __m11 = (function () {
+const { DEG, polar2 } = __m0;
+const { CX, CY, R, W } = __m3;
+const { dm, fLat } = __m1;
+
+// Vista lateral del plano del meridiano: N a la izquierda, S a la derecha, cénit arriba.
+// Los ángulos de pantalla se miden desde el S (derecha) en sentido antihorario.
+
+const __default = {
+  id: 'meridiana',
+  group: 'plano',
+  name: 'Altura meridiana del Sol',
+  desc: 'Latitud por la meridiana, en el plano del meridiano',
+  view: null,
+  params: [
+    { k: 'lat', kind: 'angle', sym: 'lat', label: 'Latitud del observador', min: -89, max: 89, def: 40, hem: ['N', 'S'] },
+    { k: 'dec', kind: 'angle', sym: 'dec', label: 'Declinación del Sol', min: -89, max: 89, def: 15, hem: ['N', 'S'],
+      help: 'Entre 23° 26′ N y 23° 26′ S a lo largo del año.' },
+  ],
+  opts: [
+    ['altura', 'Altura meridiana', true],
+    ['zd', 'Distancia cenital', true],
+    ['decl', 'Declinación', true],
+    ['latz', 'Latitud (del ecuador al cénit)', true],
+    ['polo', 'Altura del polo', false],
+    ['formula', 'Fórmula al pie', true],
+  ],
+  astro: { type: 'sol', name: 'Sol' },
+  caption: 'Latitud por la altura meridiana del Sol.',
+  animations: [
+    { label: 'El Sol a lo largo del año', param: 'dec', from: -23.44, to: 23.44 },
+    { label: 'Navegar hacia el sur', param: 'lat', from: 50, to: -20 },
+  ],
+
+  draw(F, p, o, ctx) {
+    const N = F.N, { lat, dec } = p;
+    const C = [CX, CY];
+    const pt = (th, r = 1) => polar2(C, R * r, th);
+    const arcP = (t0, t1, r) => {
+      const n = Math.max(2, Math.ceil(Math.abs(t1 - t0) / 2));
+      const pts = [];
+      for (let i = 0; i <= n; i++) pts.push(pt(t0 + ((t1 - t0) * i) / n, r));
+      return pts;
+    };
+    const measure = (t0, t1, r, cat) => {
+      F.path(arcP(t0, t1, r), cat, { arrow: true });
+      F.path([pt(t0, r - 0.025), pt(t0, r + 0.025)], cat);
+    };
+    const L = (id, text, th, r, o2 = {}) => F.place(id, text, pt(th, 1), Math.cos(th * DEG), -Math.sin(th * DEG), (r - 1) * R, o2);
+    const ts = 90 - lat + dec;
+    const Q = 90 - lat;
+    const tsn = (((ts + 90) % 360) + 360) % 360 - 90;
+    const h0 = tsn > 90 && tsn < 270 ? 180 : 0;
+    const aval = h0 === 0 ? tsn : 180 - tsn;
+    const zv = 90 - tsn;
+
+    F.sphere = true;
+    F.step(1, 'Horizonte, cénit y meridiano');
+    F.poly(arcP(180, 360, 1), F.pal.plane);
+    F.path([pt(180), pt(0)], 'ref');
+    F.path([pt(90), pt(270)], 'inner', { kind: 'in' });
+    L('N', 'N', 180, 1.05, { bold: true, scale: 1.1 });
+    L('S', 'S', 0, 1.05, { bold: true, scale: 1.1 });
+    L('cenit', F.words ? 'Cénit' : 'Cenit', 90, 1.04, { bold: true });
+    L('nadir', 'Nadir', 270, 1.04);
+    F.lab('horizonte', 'Horizonte', CX - R * 0.5, CY + F.fs * 1.3, { italic: true });
+    F.dotS(CX, CY, F.pal.ink, 3.5);
+    F.lab('O', F.words ? 'Observador' : 'O', CX + 10, CY + F.fs * 1.25, { anchor: 'start' });
+
+    F.step(2, 'Eje del mundo y ecuador');
+    F.path([pt(180 - lat, 1.2), pt(-lat, 1.2)], 'ref2');
+    F.path([pt(Q), pt(Q + 180)], 'eq');
+    L('pn', 'Pn', 180 - lat, 1.24, { bold: true });
+    L('ps', 'Ps', -lat, 1.24);
+    L('ecuador', 'Ecuador', Q + 180, 1.05, { italic: true, col: F.pal.eqc });
+    if (o.polo) {
+      measure(lat >= 0 ? 180 : 0, lat >= 0 ? 180 - lat : -lat, 1.07, 't2');
+      const th = lat >= 0 ? 180 - lat / 2 : -lat / 2;
+      F.place('polo', F.vals ? `altura del polo = ${dm(Math.abs(lat))}` : 'altura del polo', pt(th, 1), -Math.cos(th * DEG), Math.sin(th * DEG), 26, { col: F.pal.c2, scale: 0.85 });
+    }
+
+    F.step(3, 'El Sol al pasar por el meridiano');
+    F.path([C, pt(ts)], 'inner', { kind: 'in' });
+    F.astroAt(pt(ts), ctx.astroType, false);
+    L('astro', ctx.astroName || '', ts, 1.11, { bold: true });
+
+    F.step(4, 'Altura meridiana y distancia cenital');
+    if (o.altura) {
+      measure(h0, tsn, 1.07, 'c1');
+      L('alt', F.val(N.alt, (aval < 0 ? '−' : '') + dm(aval), 'Altura'), (h0 + tsn) / 2, 1.13, { col: F.pal.c1 });
+    }
+    if (o.zd) {
+      measure(90, tsn, h0 === 0 ? 1.07 : 1.14, 'c3');
+      L('zd', F.val(N.zd, dm(Math.abs(zv)) + (zv > 0 ? ' N' : zv < 0 ? ' S' : ''), 'Distancia cenital'), (90 + tsn) / 2, h0 === 0 ? 1.13 : 1.2, { col: F.pal.c3 });
+    }
+
+    F.step(5, 'Declinación y latitud');
+    if (o.decl) {
+      measure(Q, tsn, 0.86, 'c2');
+      const th = (Q + tsn) / 2;
+      F.place('dec', F.val(N.dec, fLat(dec), 'Declinación'), pt(th, 0.86), -Math.cos(th * DEG), Math.sin(th * DEG), 16, { col: F.pal.c2 });
+    }
+    if (o.latz) {
+      measure(Q, 90, 0.58, 'ang');
+      const th = (Q + 90) / 2;
+      F.place('latz', F.val(N.lat, fLat(lat), 'Latitud'), pt(th, 0.58), -Math.cos(th * DEG), Math.sin(th * DEG), 16);
+    }
+    if (o.formula) {
+      const zs = Math.abs(zv) < 1 / 120 ? '0° 00′' : dm(Math.abs(zv)) + (zv > 0 ? ' N' : ' S');
+      F.lab('formula', `${N.lat} = ${N.zd} + ${N.dec} = ${zs} + ${fLat(dec)} = ${fLat(zv + dec)}`, W / 2, 756, { scale: 0.9 });
+    }
+  },
+
+  compute(p) {
+    const ts = 90 - p.lat + p.dec;
+    const tsn = (((ts + 90) % 360) + 360) % 360 - 90;
+    const h0 = tsn > 90 && tsn < 270 ? 180 : 0;
+    const a = h0 === 0 ? tsn : 180 - tsn;
+    const z = 90 - Math.abs(a);
+    return [
+      ['Altura meridiana', `${a < 0 ? '−' : ''}${dm(a)} sobre el horizonte ${h0 === 0 ? 'S' : 'N'}`],
+      ['Distancia cenital', dm(z)],
+      ['Declinación', fLat(p.dec)],
+      ['Latitud = z + d', fLat(p.lat)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/horarios.js
+const __m12 = (function () {
+const { DEG, mod360, wrap180 } = __m0;
+const { CX, CY, W } = __m3;
+const { lhaFrom } = __m4;
+const { dm, fLon, fHours } = __m1;
+
+// Diagrama de horarios en el plano del ecuador, visto desde el polo.
+// Greenwich arriba. Visto desde el polo norte, el oeste va en el sentido de las agujas del reloj.
+
+const RR = 250;
+
+const __default = {
+  id: 'horarios',
+  group: 'plano',
+  name: 'Horarios vistos desde el polo',
+  desc: 'Horario en Greenwich, longitud, horario del lugar y Aries',
+  view: null,
+  params: [
+    { k: 'lon', kind: 'angle', sym: 'lon', label: 'Longitud del observador', min: -180, max: 180, def: -30, hem: ['E', 'W'] },
+    { k: 'gha', kind: 'angle', sym: 'haG', label: 'Horario en Greenwich del astro', min: 0, max: 360, def: 85, suffix: 'hacia el W' },
+    { k: 'ghaA', kind: 'angle', sym: 'haGA', label: 'Horario en Greenwich de Aries', min: 0, max: 360, def: 25, suffix: 'hacia el W',
+      help: 'Solo se usa si activas Aries.' },
+  ],
+  opts: [
+    ['lugar', 'Meridiano del lugar, longitud y horario del lugar', true],
+    ['aries', 'Aries y ángulo sidéreo', false],
+    ['inferior', 'Meridianos inferiores (g y m)', true],
+    ['sentido', 'Flecha del sentido W', true],
+    ['formula', 'Fórmulas al pie', true],
+    ['sur', 'Ver desde el polo sur', false],
+  ],
+  astro: { type: 'sol', name: 'Sol' },
+  caption: 'Relación entre horarios y longitud, en el plano del ecuador.',
+  animations: [
+    { label: 'Pasa una hora tras otra', param: 'gha', from: 0, to: 360 },
+    { label: 'Navegar hacia el oeste', param: 'lon', from: 30, to: -90 },
+  ],
+
+  draw(F, p, o, ctx) {
+    const N = F.N, { lon, gha, ghaA } = p;
+    const sgn = o.sur ? -1 : 1;
+    const C = [CX, CY];
+    // h: ángulo hacia el W desde Greenwich, en grados.
+    const pt = (h, r) => { const th = sgn * h * DEG; return [CX + r * Math.sin(th), CY - r * Math.cos(th)]; };
+    const arcP = (h0, h1, r) => {
+      const n = Math.max(2, Math.ceil(Math.abs(h1 - h0) / 2));
+      const pts = [];
+      for (let i = 0; i <= n; i++) pts.push(pt(h0 + ((h1 - h0) * i) / n, r));
+      return pts;
+    };
+    const arcLabel = (id, text, h0, h1, r, col) => {
+      const hm = (h0 + h1) / 2;
+      const s = pt(hm, r);
+      // Rótulo hacia dentro del arco (hacia el polo).
+      F.labAway2(id, text, s, [2 * s[0] - CX, 2 * s[1] - CY], 14, { col, scale: 0.9 });
+    };
+    const hM = -lon; // el meridiano del lugar está λW hacia el oeste de Greenwich
+    const hL = lhaFrom(gha, lon);
+
+    F.step(1, o.sur ? 'El ecuador visto desde el polo sur' : 'El ecuador visto desde el polo norte');
+    F.poly(arcP(0, 360, RR), F.pal.sphere);
+    F.path(arcP(0, 360, RR), 'sphere');
+    F.dotS(CX, CY, F.pal.ink, 4);
+    F.lab('polo', o.sur ? 'Ps' : 'Pn', CX - 12, CY + 26, { anchor: 'end', bold: true });
+    F.path([C, pt(0, RR + 18)], 'ref');
+    if (o.inferior) F.path([C, pt(180, RR)], 'ref', { kind: 'in' });
+    F.place('G', 'G', pt(0, RR + 18), 0, -1, 12, { bold: true, scale: 1.1 });
+    if (o.inferior) F.place('g', 'g', pt(180, RR), 0, 1, 14, { bold: true, scale: 1.05 });
+    if (o.sentido) {
+      F.path(arcP(214, 250, RR + 30), 'ink', { arrow: true });
+      F.labAway2('sentido', 'Hacia el W', pt(232, RR + 30), C, 16, { italic: true, scale: 0.85 });
+    }
+
+    let s = 1;
+    if (o.lugar) {
+      F.step(++s, 'Meridiano del lugar y longitud');
+      F.path([C, pt(hM, RR + 18)], 'ref');
+      if (o.inferior) F.path([C, pt(hM + 180, RR)], 'ref', { kind: 'in' });
+      F.labAway2('M', 'M', pt(hM, RR + 18), C, 14, { bold: true, scale: 1.1 });
+      if (o.inferior) F.labAway2('m', 'm', pt(hM + 180, RR), C, 14, { bold: true, scale: 1.05 });
+      F.path(arcP(0, hM, RR + 50), 'ang', { arrow: true });
+      F.labAway2('lon', F.val(N.lon, fLon(lon), 'Longitud'), pt(hM / 2, RR + 50), C, 12, { scale: 0.9 });
+    }
+
+    F.step(++s, 'El astro y su horario en Greenwich');
+    F.path([C, pt(gha, RR)], 'ref2');
+    F.astroAt(pt(gha, RR), ctx.astroType, false);
+    F.labAway2('astro', ctx.astroName || '', pt(gha, RR), C, 30, { bold: true });
+    F.path(arcP(0, gha, RR * 0.88), 'c2', { arrow: true });
+    arcLabel('hG', F.val(N.haG, dm(gha), 'Horario en Greenwich'), 0, gha, RR * 0.88, F.pal.c2);
+
+    if (o.lugar) {
+      F.step(++s, 'Horario del lugar');
+      F.path(arcP(hM, hM + hL, RR * 0.66), 'c1', { arrow: true });
+      arcLabel('hL', F.val(N.ha, dm(hL), 'Horario del lugar'), hM, hM + hL, RR * 0.66, F.pal.c1);
+    }
+
+    if (o.aries) {
+      F.step(++s, 'Aries y ángulo sidéreo');
+      const AS = mod360(gha - ghaA);
+      F.path([C, pt(ghaA, RR)], 'ref2', { kind: 'dash' });
+      F.labAway2('aries', 'γ', pt(ghaA, RR), C, 16, { bold: true, scale: 1.2, col: F.pal.c3 });
+      F.path(arcP(ghaA, ghaA + AS, RR * 0.44), 'c3', { arrow: true });
+      arcLabel('as', F.val(N.sha, dm(AS), 'Ángulo sidéreo'), ghaA, ghaA + AS, RR * 0.44, F.pal.c3);
+      F.path(arcP(0, ghaA, RR + 84), 't3', { arrow: true });
+      F.labAway2('hGA', F.val(N.haGA, dm(ghaA), 'Horario de Aries'), pt(ghaA / 2, RR + 84), C, 12, { scale: 0.9, col: F.pal.c3 });
+    }
+
+    if (o.formula) {
+      const lines = [];
+      if (o.lugar) {
+        const lonTxt = lon >= 0 ? `+ ${N.lon}E` : `− ${N.lon}W`;
+        lines.push(`${N.ha} = ${N.haG} ${lonTxt} = ${dm(gha)} ${lon >= 0 ? '+' : '−'} ${dm(Math.abs(lon))} = ${dm(hL)}`);
+      }
+      if (o.aries) lines.push(`${N.haG} = ${N.haGA} + ${N.sha} = ${dm(ghaA)} + ${dm(mod360(gha - ghaA))} = ${dm(gha)}`);
+      lines.forEach((t, i) => F.lab('formula' + i, t, W / 2, 752 - (lines.length - 1 - i) * 30, { scale: 0.9 }));
+    }
+  },
+
+  compute(p) {
+    const hL = lhaFrom(p.gha, p.lon);
+    const AS = mod360(p.gha - p.ghaA);
+    return [
+      ['Horario en Greenwich', `${dm(p.gha)} (${fHours(p.gha)})`],
+      ['Longitud', fLon(wrap180(p.lon))],
+      ['Horario del lugar', `${dm(hL)} (${fHours(hL)})`],
+      ['Ángulo en el polo', hL <= 180 ? `${dm(hL)} W` : `${dm(360 - hL)} E`],
+      ['Ángulo sidéreo (con Aries)', dm(AS)],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/recta.js
+const __m13 = (function () {
+const { DEG } = __m0;
+const { CX, CY, W, H } = __m3;
+const { fixFromTwoLines } = __m4;
+const { fAz3, fNum, fMinSigned, fDist, KM_PER_MILE } = __m1;
+
+// Plantilla de trazado: norte arriba, 1 milla = K píxeles. Situación de estima en el centro.
+const K = 12;
+
+const u = (Z) => [Math.sin(Z * DEG), -Math.cos(Z * DEG)];
+const at = (e, n) => [CX + e * K, CY - n * K];
+const plus = (a, d, k) => [a[0] + d[0] * k, a[1] + d[1] * k];
+
+function line(F, idp, Z, da, catMain, catThin, o, N) {
+  const C = [CX, CY];
+  const d = u(Z);
+  const pv = [Math.cos(Z * DEG), Math.sin(Z * DEG)];
+  const D = at(da * Math.sin(Z * DEG), da * Math.cos(Z * DEG));
+  return {
+    azimut() {
+      F.path([C, plus(C, d, 300)], 'ref2', { arrow: true });
+      F.path([C, plus(C, d, -60)], 'ref2', { kind: 'dot' });
+      const tip = plus(C, d, 300);
+      F.place(idp + 'az', F.words ? `Azimut ${fAz3(Z)}` : `${N.az} = ${fAz3(Z)}`, tip, d[0], d[1], 14, { scale: 0.9 });
+    },
+    intercept() {
+      if (Math.abs(da) > 0.2) F.path([C, D], catMain, { arrow: true });
+      F.dotS(D[0], D[1], F.pal[catMain === 'c2' ? 'c2' : 'c3'], 5);
+      const side = da >= 0 ? 'hacia el astro' : 'alejándose del astro';
+      const txt = F.vals ? `${N.da} = ${fMinSigned(da)} (${side})` : N.da;
+      const m = plus(C, d, (da * K) / 2);
+      const perp = [pv[0], pv[1]];
+      F.place(idp + 'da', F.words ? `Diferencia de alturas ${fMinSigned(da)}` : txt, m, perp[0], perp[1], 14, { col: F.pal[catMain], scale: 0.9 });
+      F.place(idp + 'pd', F.words ? 'Punto determinante' : 'Pd', D, -perp[0], -perp[1], 14, { scale: 0.9 });
+    },
+    recta() {
+      F.path([plus(D, pv, -270), plus(D, pv, 270)], catThin === 't1' ? 'c1' : 'c3');
+      F.place(idp + 'recta', 'Recta de altura', plus(D, pv, 230), -d[0], -d[1], 16, { col: F.pal[catThin === 't1' ? 'c1' : 'c3'], italic: true, scale: 0.9 });
+      if (o.arco) {
+        const Rc = 1100;
+        const Cc = plus(D, d, Rc);
+        const a0 = Math.atan2(-d[1], -d[0]);
+        const pts = [];
+        for (let i = -20; i <= 20; i++) { const a = a0 + (i / 20) * 0.26; pts.push([Cc[0] + Rc * Math.cos(a), Cc[1] + Rc * Math.sin(a)]); }
+        F.path(pts, catThin, { kind: 'in' });
+        if (idp === 'a') {
+          const end = [pts[0], pts[pts.length - 1]].find((q) => (q[0] - D[0]) * pv[0] + (q[1] - D[1]) * pv[1] < 0);
+          F.place(idp + 'arco', 'Círculo de alturas iguales', end, -d[0], -d[1], 14, { italic: true, scale: 0.8, col: F.pal.ref });
+        }
+      }
+    },
+  };
+}
+
+const __default = {
+  id: 'recta',
+  group: 'plano',
+  name: 'Recta de altura',
+  desc: 'Método de Marcq Saint-Hilaire en la carta',
+  view: null,
+  params: [
+    { k: 'Z1', kind: 'angle', sym: 'az', label: 'Azimut del astro', min: 0, max: 360, def: 50, suffix: 'verdadero' },
+    { k: 'd1', kind: 'number', sym: 'da', label: 'Diferencia de alturas (observada − estimada)', unit: '′', min: -20, max: 20, step: 0.1, def: 6,
+      help: 'Positiva: el punto determinante va hacia el astro. Negativa: se aleja del astro.' },
+    { k: 'Z2', kind: 'angle', sym: 'az', label: 'Azimut del segundo astro', min: 0, max: 360, def: 160, suffix: 'verdadero',
+      help: 'Solo se usa con la segunda recta.' },
+    { k: 'd2', kind: 'number', sym: 'da', label: 'Diferencia de alturas del segundo astro', unit: '′', min: -20, max: 20, step: 0.1, def: -4,
+      help: 'Solo se usa con la segunda recta.' },
+  ],
+  opts: [
+    ['dos', 'Segunda recta y situación observada', false],
+    ['arco', 'Arco del círculo de alturas iguales', true],
+    ['cuadricula', 'Cuadrícula de 5 millas', true],
+    ['norte', 'Flecha del norte y escala', true],
+  ],
+  caption: 'La recta de altura por el método de Marcq Saint-Hilaire.',
+  animations: [
+    { label: 'Cambiar el azimut', param: 'Z1', from: 0, to: 360 },
+    { label: 'Cambiar la diferencia de alturas', param: 'd1', from: -15, to: 15 },
+  ],
+
+  draw(F, p, o) {
+    const N = F.N;
+    const C = [CX, CY];
+    const L1 = line(F, 'a', p.Z1, p.d1, 'c2', 't1', o, N);
+    const L2 = o.dos ? line(F, 'b', p.Z2, p.d2, 'c3', 't3', o, N) : null;
+
+    F.step(1, 'Situación de estima');
+    if (o.cuadricula) {
+      for (let i = -30; i <= 30; i += 5) {
+        const x = CX + i * K, y = CY - i * K;
+        if (x > 10 && x < W - 10) F.path([[x, 30], [x, H - 40]], 'grid');
+        if (y > 30 && y < H - 40) F.path([[10, y], [W - 10, y]], 'grid');
+      }
+    }
+    if (o.norte) {
+      F.path([[W - 60, 140], [W - 60, 70]], 'ink', { arrow: true });
+      F.lab('norte', 'N', W - 60, 58, { bold: true });
+      F.path([[40, H - 70], [40 + 5 * K, H - 70]], 'ink');
+      F.path([[40, H - 76], [40, H - 64]], 'ink');
+      F.path([[40 + 5 * K, H - 76], [40 + 5 * K, H - 64]], 'ink');
+      F.lab('escala', F.dist === 'km' ? `5 millas (${fNum(5 * KM_PER_MILE, 1)} km)` : '5 millas', 40 + 5 * K + 10, H - 64, { anchor: 'start', scale: 0.8 });
+    }
+    F.raw(`<circle cx="${CX}" cy="${CY}" r="7" fill="${F.pal.paper}" stroke="${F.pal.ink}" stroke-width="2"/><circle cx="${CX}" cy="${CY}" r="2" fill="${F.pal.ink}"/>`);
+    F.place('se', F.words ? 'Situación de estima' : 'Se', C, -0.7, 0.7, 14, { bold: true });
+
+    F.step(2, 'Azimut del astro');
+    L1.azimut();
+    F.step(3, 'Diferencia de alturas');
+    L1.intercept();
+    F.step(4, 'Recta de altura');
+    L1.recta();
+
+    if (L2) {
+      F.step(5, 'Segunda recta y situación observada');
+      L2.azimut();
+      L2.intercept();
+      L2.recta();
+      const fx = fixFromTwoLines(p.Z1, p.d1, p.Z2, p.d2);
+      if (fx) {
+        const S = at(fx.e, fx.n);
+        F.raw(`<circle cx="${S[0].toFixed(1)}" cy="${S[1].toFixed(1)}" r="9" fill="${F.pal.paper}" stroke="${F.pal.ink}" stroke-width="2.4"/><circle cx="${S[0].toFixed(1)}" cy="${S[1].toFixed(1)}" r="2.6" fill="${F.pal.ink}"/>`);
+        F.place('so', F.words ? 'Situación observada' : 'So', S, 0.7, 0.7, 16, { bold: true });
+      }
+    }
+  },
+
+  compute(p, o = {}, ctx = {}) {
+    const D = (x) => fDist(x, ctx.dist);
+    const rows = [
+      ['Azimut', fAz3(p.Z1)],
+      ['Diferencia de alturas', `${fMinSigned(p.d1)} = ${D(Math.abs(p.d1))} ${p.d1 >= 0 ? 'hacia el astro' : 'alejándose del astro'}`],
+    ];
+    if (o.dos) {
+      const fx = fixFromTwoLines(p.Z1, p.d1, p.Z2, p.d2);
+      if (fx) {
+        const dist = Math.hypot(fx.e, fx.n);
+        const rumbo = (Math.atan2(fx.e, fx.n) / DEG + 360) % 360;
+        rows.push(['Situación observada', `${D(Math.abs(fx.n))} al ${fx.n >= 0 ? 'N' : 'S'} y ${D(Math.abs(fx.e))} al ${fx.e >= 0 ? 'E' : 'W'} de la estima`]);
+        rows.push(['Desde la estima', `${D(dist)} al ${fAz3(rumbo)}`]);
+      } else rows.push(['Situación observada', 'Las dos rectas son paralelas: no se cortan']);
+    }
+    return rows;
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/depresion.js
+const __m14 = (function () {
+const { DEG } = __m0;
+const { W, H } = __m3;
+const { dip, refraction, horizonDistance } = __m4;
+const { dm, dmd, fNum, fDist } = __m1;
+
+// Vista lateral, no a escala: la depresión y la refracción se exageran para que se vean.
+
+const X0 = 190, Y0 = 560, RE = 1150;
+
+/** Punto a distancia r de E con elevación e (grados, positiva hacia arriba). */
+const ray = (E, r, e) => [E[0] + r * Math.cos(e * DEG), E[1] - r * Math.sin(e * DEG)];
+const arcAt = (E, r, e0, e1) => {
+  const n = Math.max(2, Math.ceil(Math.abs(e1 - e0) / 1.5));
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(ray(E, r, e0 + ((e1 - e0) * i) / n));
+  return pts;
+};
+
+const __default = {
+  id: 'depresion',
+  group: 'plano',
+  name: 'Depresión del horizonte',
+  desc: 'Altura instrumental, aparente y refracción',
+  view: null,
+  params: [
+    { k: 'h', kind: 'number', label: 'Altura del ojo sobre el mar', unit: 'm', min: 1, max: 40, step: 0.5, def: 12 },
+    { k: 'ai', kind: 'angle', sym: 'ai', label: 'Altura instrumental (la del sextante)', min: 3, max: 75, def: 25 },
+  ],
+  opts: [
+    ['sensible', 'Horizonte sensible', true],
+    ['aparente', 'Altura aparente', true],
+    ['refraccion', 'Refracción y posición verdadera', true],
+    ['cenit', 'Vertical del lugar', true],
+    ['barco', 'Barco y altura del ojo', true],
+    ['formula', 'Fórmulas al pie', true],
+  ],
+  astro: { type: 'estrella', name: 'Estrella' },
+  caption: 'Depresión del horizonte y corrección de la altura.',
+  animations: [
+    { label: 'Subir la altura del ojo', param: 'h', from: 2, to: 40 },
+    { label: 'Cambiar la altura del astro', param: 'ai', from: 5, to: 60 },
+  ],
+
+  draw(F, p, o, ctx) {
+    const N = F.N;
+    const dp = dip(p.h);
+    const ap = p.ai - dp / 60;
+    const th = 9 + (Math.min(p.h, 40) / 40) * 9; // depresión dibujada (exagerada), en grados
+    const hpx = RE * (1 / Math.cos(th * DEG) - 1);
+    const Cc = [X0, Y0 + RE];
+    const E = [X0, Y0 - hpx];
+    const T = [X0 + RE * Math.sin(th * DEG), Cc[1] - RE * Math.cos(th * DEG)];
+    const aFig = Math.max(8, Math.min(70, ap)) ;
+    const starR = Math.min(430, (E[1] - 60) / Math.sin(aFig * DEG));
+    const S = ray(E, starR, aFig);
+
+    F.step(1, 'El observador y la altura del ojo');
+    const sea = [];
+    for (let a = -0.62; a <= 0.62001; a += 0.02) sea.push([Cc[0] + RE * Math.sin(a), Cc[1] - RE * Math.cos(a)]);
+    F.poly([...sea, [W + 40, H + 40], [-40, H + 40]], F.pal.sea);
+    F.path(sea, 'ref');
+    F.lab('mar', 'Superficie del mar', 30, Y0 + 70, { anchor: 'start', italic: true, scale: 0.85, col: F.pal.ref });
+    if (o.barco) {
+      F.poly([[X0 - 46, Y0 - 3], [X0 + 46, Y0 - 3], [X0 + 32, Y0 + 14], [X0 - 36, Y0 + 14]], F.pal.ref, { layer: 'marks' });
+      F.path([[X0, Y0 - 3], E], 'ink');
+      F.path([[X0 - 64, Y0 - 3], [X0 - 64, E[1]]], 'ink', { arrow: true });
+      F.path([[X0 - 70, Y0 - 3], [X0 - 58, Y0 - 3]], 'ink');
+      F.lab('h', F.vals ? `h = ${fNum(p.h, 1).replace(',0', '')} m` : 'h', X0 - 76, (Y0 + E[1]) / 2 + 6, { anchor: 'end', scale: 0.9 });
+    }
+    F.dotS(E[0], E[1], F.pal.ink, 4.5);
+    F.place('ojo', F.words ? 'Ojo del observador' : 'Ojo', E, 0.6, 0.8, 12, { scale: 0.85 });
+    if (o.cenit) {
+      F.path([E, [X0, 40]], 'ref2', { kind: 'in' });
+      F.lab('cenit', F.words ? 'Cénit' : 'Cenit', X0, 32);
+      F.path([[X0, Y0 + 14], [X0, H - 10]], 'grid', { kind: 'in' });
+      F.lab('centro', 'Hacia el centro de la Tierra', X0 + 10, H - 22, { anchor: 'start', italic: true, scale: 0.8 });
+    }
+
+    F.step(2, 'Horizonte sensible y horizonte de la mar');
+    if (o.sensible) {
+      F.path([E, [W - 24, E[1]]], 'ref2');
+      F.lab('hsens', 'Horizonte sensible', W - 30, E[1] - 10, { anchor: 'end', italic: true, scale: 0.9 });
+    }
+    const dv = [T[0] - E[0], T[1] - E[1]];
+    const L = (W - 24 - E[0]) / dv[0];
+    const Vend = [E[0] + dv[0] * L, E[1] + dv[1] * L];
+    F.path([E, Vend], 'ref');
+    F.dotS(T[0], T[1], F.pal.ref, 4);
+    F.lab('hmar', 'Horizonte de la mar', W - 30, Vend[1] + 28, { anchor: 'end', italic: true, scale: 0.9 });
+    F.path(arcAt(E, 340, 0, -th), 'c2', { arrow: true });
+    F.place('dp', F.val(N.dip, `${fNum(dp, 1)}′`, 'Depresión'), ray(E, 340, -th / 2), 1, 0, 10, { col: F.pal.c2 });
+
+    F.step(3, 'Altura instrumental');
+    F.path([E, S], 'ref2');
+    F.astroAt(S, ctx.astroType, false);
+    F.place('astro', ctx.astroName || '', S, 0.8, -0.6, 22, { bold: true });
+    F.path(arcAt(E, 170, -th, aFig), 'c1', { arrow: true });
+    F.place('ai', F.val(N.ai, dm(p.ai), 'Altura instrumental'), ray(E, 170, aFig + 5), -1, 0, 4, { col: F.pal.c1, anchor: 'end' });
+
+    let s = 3;
+    if (o.aparente) {
+      F.step(++s, 'Altura aparente');
+      F.path(arcAt(E, 270, 0, aFig), 'c3', { arrow: true });
+      F.place('ap', F.words ? `Altura aparente ${dmd(ap)}` : F.vals ? `${N.ap} = ${N.ai} − ${N.dip} = ${dmd(ap)}` : N.ap, ray(E, 270, aFig + 4), -1, 0, 4, { col: F.pal.c3, scale: 0.9, anchor: 'end' });
+    }
+    if (o.refraccion) {
+      F.step(++s, 'Refracción');
+      const rFig = 5;
+      const St = ray(E, starR, aFig - rFig);
+      F.path([E, St], 'grid', { kind: 'in' });
+      F.astroAt(St, ctx.astroType, false, { hollow: true });
+      F.place('verdadera', 'Posición verdadera', St, 1, 0.2, 22, { italic: true, scale: 0.85 });
+      F.path(arcAt(E, starR - 40, aFig, aFig - rFig), 'ang', { arrow: true });
+      F.place('ref', F.val('R', `${fNum(refraction(ap), 1)}′`, 'Refracción'), ray(E, starR - 40, aFig - rFig / 2), 1, 0, 10, { scale: 0.85 });
+    }
+
+    if (o.formula) {
+      F.lab('f1', `${N.dip} = 1,76′ √h = 1,76′ × √${fNum(p.h, 1).replace(',0', '')} = ${fNum(dp, 1)}′`, W - 24, 40, { anchor: 'end', scale: 0.85 });
+      F.lab('f2', `${N.av} = ${N.ap} − R = ${dmd(ap)} − ${fNum(refraction(ap), 1)}′ = ${dmd(ap - refraction(ap) / 60)}`, W - 24, 70, { anchor: 'end', scale: 0.85 });
+      F.lab('nota', 'Figura no a escala', W - 24, 756, { anchor: 'end', italic: true, scale: 0.75, col: F.pal.ref });
+    }
+  },
+
+  compute(p, o, ctx = {}) {
+    const dp = dip(p.h);
+    const ap = p.ai - dp / 60;
+    const R = refraction(ap);
+    return [
+      ['Depresión del horizonte', `${fNum(dp, 1)}′`],
+      ['Altura aparente (ai − dp)', dmd(ap)],
+      ['Refracción media', `${fNum(R, 1)}′`],
+      ['Altura verdadera de una estrella', dmd(ap - R / 60)],
+      ['Distancia al horizonte de la mar', `${fDist(horizonDistance(p.h), ctx.dist)} aprox.`],
+    ];
+  },
+};
+
+return { default: __default };
+})();
+
+// src/figures/index.js
+const __m15 = (function () {
+// Registro de figuras. Para añadir una figura nueva: crea su archivo en esta carpeta,
+// impórtalo aquí y añádelo a FIGURES en el grupo que le corresponda (ver CLAUDE.md).
+
+const terrestre = __m2.default;
+const subastral = __m5.default;
+const ecuatoriales = __m6.default;
+const horizontales = __m7.default;
+const triangulo = __m8.default;
+const diurno = __m9.default;
+const ecliptica = __m10.default;
+const meridiana = __m11.default;
+const horarios = __m12.default;
+const recta = __m13.default;
+const depresion = __m14.default;
+
+const GROUPS = [
+  { id: 'tierra', name: 'La Tierra' },
+  { id: 'celeste', name: 'La esfera celeste' },
+  { id: 'plano', name: 'Vistas planas y carta' },
+];
+
+const FIGURES = [
+  terrestre, subastral,
+  horizontales, ecuatoriales, triangulo, diurno, ecliptica,
+  meridiana, horarios, recta, depresion,
+];
+
+const byId = (id) => FIGURES.find((f) => f.id === id);
+
+return { GROUPS, FIGURES, byId };
+})();
+
+// src/core/render.js
+const __m16 = (function () {
+// Une una definición de figura con su estado y el estilo global, y devuelve el SVG.
+// Es puro: lo usan la interfaz, las pruebas y el script de ejemplos.
+
+const { Fig } = __m3;
+
+/**
+ * @param {object} fig   definición de la figura (src/figures/*.js)
+ * @param {object} fs    estado de esa figura (params, opts, view, caption, astroType, astroName, offsets, texts)
+ * @param {object} style estilo global
+ * @param {object} [extra] {reveal, transparent, idPrefix, showLabels, noCaption, viewOverride, paramsOverride}
+ */
+function renderFigure(fig, fs, style, extra = {}) {
+  const view = fig.view ? { ...(extra.viewOverride || fs.view || fig.view) } : null;
+  const params = extra.paramsOverride ? { ...fs.params, ...extra.paramsOverride } : fs.params;
+  const F = new Fig({ style, view, reveal: extra.reveal || null, idPrefix: extra.idPrefix || 'f' });
+  fig.draw(F, params, fs.opts, { astroType: fs.astroType, astroName: fs.astroName });
+  let banner = '';
+  if (extra.reveal && style.stepBanner && F.stepTitles[extra.reveal.upto]) {
+    banner = `Paso ${extra.reveal.upto}. ${F.stepTitles[extra.reveal.upto]}`;
+  }
+  const out = F.toSVG({
+    transparent: !!extra.transparent,
+    caption: extra.noCaption ? '' : fs.caption,
+    offsets: fs.offsets || {},
+    texts: fs.texts || {},
+    showLabels: extra.showLabels ?? style.labels !== false,
+    banner,
+  });
+  const steps = [];
+  for (let i = 1; i <= F.maxStep; i++) if (F.stepTitles[i]) steps.push({ n: i, title: F.stepTitles[i] });
+  const seen = new Set();
+  const labels = F.labelIndex.filter((l) => l.text && !seen.has(l.id) && seen.add(l.id));
+  return { ...out, steps, labels };
+}
+
+return { renderFigure };
+})();
+
+// src/core/state.js
+const __m17 = (function () {
+// Estado de la aplicación: valores por defecto, validación al importar y serialización.
+// El estado es un objeto JSON simple; se guarda en el navegador y se exporta como .json.
+
+const STATE_VERSION = 2;
+const STORAGE_KEY = 'figuras-navegacion:v2';
+
+const DEFAULT_STYLE = {
+  mode: 'color', // 'color' | 'bn'
+  size: 'm', // 's' | 'm' | 'l'
+  weight: 'n', // 'f' | 'n' | 'g'
+  font: 'serif', // 'serif' | 'sans'
+  notation: 'intl', // 'intl' | 'esp'
+  dist: 'mi', // 'mi' (millas náuticas) | 'km'
+  labels: true,
+  values: true,
+  words: false,
+  curved: false,
+  arrows: true,
+  hidden: true,
+  stepBanner: true,
+};
+
+const STYLE_CHOICES = {
+  mode: ['color', 'bn'], size: ['s', 'm', 'l'], weight: ['f', 'n', 'g'], font: ['serif', 'sans'], notation: ['intl', 'esp'],
+  dist: ['mi', 'km'],
+};
+
+const ASTRO_TYPES = ['sol', 'estrella', 'punto'];
+
+function defaultFigureState(fig) {
+  const params = {};
+  for (const p of fig.params) params[p.k] = p.def;
+  const opts = {};
+  for (const [k, , d] of fig.opts) opts[k] = d;
+  return {
+    params,
+    opts,
+    view: fig.view ? { ...fig.view } : null,
+    caption: '',
+    astroType: fig.astro?.type || 'estrella',
+    astroName: fig.astro?.name ?? '',
+    offsets: {},
+    texts: {},
+    reveal: 0, // 0 = figura completa; n = mostrar hasta el paso n
+  };
+}
+
+function defaultState(figs) {
+  const figures = {};
+  for (const f of figs) figures[f.id] = defaultFigureState(f);
+  return {
+    version: STATE_VERSION,
+    figure: figs.some((f) => f.id === 'horizontales') ? 'horizontales' : figs[0].id,
+    figures,
+    style: { ...DEFAULT_STYLE },
+    export: { scale: 3, transparent: false },
+    anim: { mode: 'pasos', param: '', from: 0, to: 360, duration: 10 },
+  };
+}
+
+const num = (x, d) => (typeof x === 'number' && Number.isFinite(x) ? x : d);
+const clampNum = (x, a, b, d) => Math.max(a, Math.min(b, num(x, d)));
+
+/** Mezcla un estado leído (localStorage o archivo) sobre los valores por defecto, validando todo. */
+function sanitizeState(raw, figs) {
+  const s = defaultState(figs);
+  if (!raw || typeof raw !== 'object' || raw.version !== STATE_VERSION) return s;
+  if (figs.some((f) => f.id === raw.figure)) s.figure = raw.figure;
+  if (raw.style && typeof raw.style === 'object') {
+    for (const k of Object.keys(DEFAULT_STYLE)) {
+      const v = raw.style[k];
+      if (STYLE_CHOICES[k]) { if (STYLE_CHOICES[k].includes(v)) s.style[k] = v; } else if (typeof v === 'boolean') s.style[k] = v;
+    }
+  }
+  if (raw.export) {
+    if ([2, 3, 5].includes(raw.export.scale)) s.export.scale = raw.export.scale;
+    s.export.transparent = !!raw.export.transparent;
+  }
+  if (raw.anim) {
+    if (['pasos', 'girar', 'valor'].includes(raw.anim.mode)) s.anim.mode = raw.anim.mode;
+    if (typeof raw.anim.param === 'string') s.anim.param = raw.anim.param;
+    s.anim.from = clampNum(raw.anim.from, -360, 360, s.anim.from);
+    s.anim.to = clampNum(raw.anim.to, -360, 360, s.anim.to);
+    s.anim.duration = clampNum(raw.anim.duration, 3, 30, s.anim.duration);
+  }
+  for (const f of figs) {
+    const src = raw.figures?.[f.id];
+    if (!src || typeof src !== 'object') continue;
+    const dst = s.figures[f.id];
+    for (const p of f.params) dst.params[p.k] = clampNum(src.params?.[p.k], p.min, p.max, p.def);
+    for (const [k] of f.opts) if (typeof src.opts?.[k] === 'boolean') dst.opts[k] = src.opts[k];
+    if (f.view && src.view) {
+      dst.view = { yaw: clampNum(src.view.yaw, -180, 180, f.view.yaw), pitch: clampNum(src.view.pitch, -60, 89, f.view.pitch) };
+    }
+    if (typeof src.caption === 'string') dst.caption = src.caption.slice(0, 300);
+    if (ASTRO_TYPES.includes(src.astroType)) dst.astroType = src.astroType;
+    if (typeof src.astroName === 'string') dst.astroName = src.astroName.slice(0, 40);
+    if (src.offsets && typeof src.offsets === 'object') {
+      for (const [id, o] of Object.entries(src.offsets)) {
+        if (o && typeof o === 'object') dst.offsets[id] = { dx: clampNum(o.dx, -800, 800, 0), dy: clampNum(o.dy, -800, 800, 0) };
+      }
+    }
+    if (src.texts && typeof src.texts === 'object') {
+      for (const [id, t] of Object.entries(src.texts)) if (typeof t === 'string' && t) dst.texts[id] = t.slice(0, 80);
+    }
+    dst.reveal = Math.round(clampNum(src.reveal, 0, 20, 0));
+  }
+  return s;
+}
+
+return { defaultFigureState, defaultState, sanitizeState, STATE_VERSION, STORAGE_KEY, DEFAULT_STYLE, ASTRO_TYPES };
+})();
+
+// src/platform.js
+const __m18 = (function () {
+// Lo que depende de dónde se abre la app: guardar archivos y recordar ajustes.
+// Dentro de claude.ai las descargas pasan por la capacidad `downloads`; en GitHub Pages
+// o en un archivo local se usa un enlace de descarga normal.
+
+let downloadsPromise;
+
+function downloadsApi() {
+  if (downloadsPromise === undefined) {
+    const c = typeof window !== 'undefined' ? window.claude : undefined;
+    downloadsPromise = c && typeof c.use === 'function' ? c.use('downloads').catch(() => null) : Promise.resolve(null);
+  }
+  return downloadsPromise;
+}
+
+/**
+ * Ofrece un archivo al usuario.
+ * @returns {Promise<{ok: boolean, code?: string}>}
+ */
+async function saveFile(filename, data) {
+  const api = await downloadsApi();
+  if (api) {
+    try {
+      await api.save({ filename, data });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, code: (e && e.code) || 'error' };
+    }
+  }
+  try {
+    const blob = data instanceof Blob ? data : new Blob([data]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return { ok: true };
+  } catch {
+    return { ok: false, code: 'unavailable' };
+  }
+}
+
+/** Mensaje para el resultado de saveFile. */
+function saveMessage(res, okText) {
+  if (res.ok) return okText;
+  switch (res.code) {
+    case 'declined': return 'Descarga cancelada';
+    case 'rate_limited': return 'Espera un momento y vuelve a intentarlo';
+    case 'rejected_extension':
+    case 'extension_not_enabled': return 'Este tipo de archivo no se puede descargar aquí';
+    case 'too_large': return 'El archivo es demasiado grande: prueba con menos resolución';
+    default: return 'No se pudo descargar el archivo';
+  }
+}
+
+/** Almacenamiento del navegador; si no está disponible, no hace nada. */
+const storage = {
+  get(key) {
+    try { return window.localStorage.getItem(key); } catch { return null; }
+  },
+  set(key, value) {
+    try { window.localStorage.setItem(key, value); } catch { /* sin almacenamiento */ }
+  },
+};
+
+return { saveFile, saveMessage, storage };
+})();
+
+// src/ui/exporter.js
+const __m19 = (function () {
+// Convertir el SVG en imagen PNG y grabar animaciones como vídeo.
+
+async function svgToCanvas(svg, width, height, scale = 2, transparent = false) {
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = () => reject(new Error('No se pudo convertir la figura en imagen'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+  const c = document.createElement('canvas');
+  c.width = Math.round(width * scale);
+  c.height = Math.round(height * scale);
+  const g = c.getContext('2d');
+  if (!transparent) { g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height); }
+  g.drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+
+const canvasToBlob = (c, type = 'image/png') =>
+  new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error('blob'))), type));
+
+const MIME_CANDIDATES = [
+  'video/mp4;codecs=avc1.42E01E',
+  'video/mp4',
+  'video/webm;codecs=vp9',
+  'video/webm;codecs=vp8',
+  'video/webm',
+];
+
+/** Formato de vídeo que este navegador sabe grabar, o null. */
+function videoMime() {
+  if (typeof MediaRecorder === 'undefined' || typeof HTMLCanvasElement === 'undefined') return null;
+  if (!HTMLCanvasElement.prototype.captureStream) return null;
+  return MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) || null;
+}
+
+const nextFrame = () => new Promise((r) => requestAnimationFrame(r));
+
+/**
+ * Graba en tiempo real: dibuja cada fotograma con frameAt(t) (que devuelve un SVG)
+ * durante `duration` segundos y mantiene el último `hold` segundos.
+ */
+async function recordVideo({ duration, hold = 0.8, width, height, scale = 1.5, frameAt, onProgress, signal }) {
+  const mime = videoMime();
+  if (!mime) throw new Error('sin-video');
+  const even = (x) => Math.round(x / 2) * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = even(width * scale);
+  canvas.height = even(height * scale);
+  const g = canvas.getContext('2d');
+  const draw = async (t) => {
+    const svg = frameAt(t);
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, canvas.width, canvas.height);
+    g.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+  await draw(0);
+  const stream = canvas.captureStream(30);
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  const chunks = [];
+  rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise((r) => { rec.onstop = r; });
+  rec.start(250);
+  const t0 = performance.now();
+  for (;;) {
+    if (signal && signal.aborted) break;
+    const t = (performance.now() - t0) / 1000;
+    await draw(Math.min(t, duration));
+    if (onProgress) onProgress(Math.min(1, t / (duration + hold)));
+    if (t >= duration + hold) break;
+    await nextFrame();
+  }
+  rec.stop();
+  await stopped;
+  stream.getTracks().forEach((tr) => tr.stop());
+  return { blob: new Blob(chunks, { type: mime.split(';')[0] }), ext: mime.startsWith('video/mp4') ? 'mp4' : 'webm' };
+}
+
+return { svgToCanvas, videoMime, recordVideo, canvasToBlob };
+})();
+
+// src/ui/zip.js
+const __m20 = (function () {
+// ZIP mínimo sin compresión (método "store"). Los PNG ya van comprimidos,
+// así que no hace falta más. Sin dependencias.
+
+const TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(u8) {
+  let c = 0xffffffff;
+  for (let i = 0; i < u8.length; i++) c = TABLE[(c ^ u8[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(d) {
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  return { time, date };
+}
+
+/**
+ * @param {{name: string, data: Uint8Array}[]} files
+ * @returns {Uint8Array} el archivo ZIP completo
+ */
+function makeZip(files, now = new Date()) {
+  const enc = new TextEncoder();
+  const { time, date } = dosDateTime(now);
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const size = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);
+    lh.setUint16(4, 20, true);
+    lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, 0, true);
+    lh.setUint16(10, time, true);
+    lh.setUint16(12, date, true);
+    lh.setUint32(14, crc, true);
+    lh.setUint32(18, size, true);
+    lh.setUint32(22, size, true);
+    lh.setUint16(26, name.length, true);
+    lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);
+    ch.setUint16(4, 20, true);
+    ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true);
+    ch.setUint16(12, time, true);
+    ch.setUint16(14, date, true);
+    ch.setUint32(16, crc, true);
+    ch.setUint32(20, size, true);
+    ch.setUint32(24, size, true);
+    ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
+  }
+  const cdSize = central.reduce((s, a) => s + a.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, files.length, true);
+  end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true);
+  end.setUint32(16, offset, true);
+  const all = [...parts, ...central, new Uint8Array(end.buffer)];
+  const out = new Uint8Array(all.reduce((s, a) => s + a.length, 0));
+  let p = 0;
+  for (const a of all) { out.set(a, p); p += a.length; }
+  return out;
+}
+
+return { crc32, makeZip };
+})();
+
+// src/ui/controls.js
+const __m21 = (function () {
+// Controles del panel: ángulos en grados y minutos, números, fechas, botones de opción y casillas.
+// Cada control llama a onChange(valor) mientras el usuario lo mueve.
+
+const { clamp } = __m0;
+const { MONTHS, dateFromIndex, dayIndex, fDate, fNum } = __m1;
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+/** Ángulo en grados y minutos, con hemisferio opcional y deslizador. */
+function angleField(def, value, symbol, onChange) {
+  const id = 'p-' + def.k;
+  const mx = Math.max(Math.abs(def.min), Math.abs(def.max));
+  const wrap = el('div', 'field');
+  wrap.innerHTML = `
+    <label class="flabel" for="${id}-d">${esc(def.label)}${symbol ? ` <span class="sym">(${esc(symbol)})</span>` : ''}</label>
+    <div class="dmrow">
+      <input type="number" id="${id}-d" inputmode="numeric" min="0" max="${mx}" step="1" aria-label="${esc(def.label)}: grados">
+      <span class="unit" aria-hidden="true">°</span>
+      <input type="number" id="${id}-m" inputmode="decimal" min="0" max="59.9" step="1" aria-label="${esc(def.label)}: minutos">
+      <span class="unit" aria-hidden="true">′</span>
+      ${def.hem
+        ? `<select id="${id}-h" aria-label="${esc(def.label)}: hemisferio"><option value="1">${def.hem[0]}</option><option value="-1">${def.hem[1]}</option></select>`
+        : def.suffix ? `<span class="suffix">${esc(def.suffix)}</span>` : ''}
+    </div>
+    <input type="range" id="${id}-r" min="${def.min}" max="${def.max}" step="${def.step || 0.5}" aria-label="${esc(def.label)}">
+    ${def.help ? `<p class="help">${esc(def.help)}</p>` : ''}`;
+  const deg = wrap.querySelector(`#${id}-d`), min = wrap.querySelector(`#${id}-m`);
+  const hem = wrap.querySelector(`#${id}-h`), rng = wrap.querySelector(`#${id}-r`);
+  let cur = value;
+  const show = (v) => {
+    const a = Math.abs(v);
+    let d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60 * 10) / 10;
+    if (m >= 60) { d++; m = 0; }
+    deg.value = d;
+    min.value = m;
+    if (hem) hem.value = v < 0 ? '-1' : '1';
+    rng.value = v;
+  };
+  const fromInputs = () => {
+    const d = parseFloat(deg.value) || 0;
+    const m = clamp(parseFloat(min.value) || 0, 0, 59.99);
+    cur = clamp((d + m / 60) * (hem ? +hem.value : 1), def.min, def.max);
+    rng.value = cur;
+    onChange(cur);
+  };
+  rng.addEventListener('input', () => { cur = parseFloat(rng.value); show(cur); onChange(cur); });
+  deg.addEventListener('input', fromInputs);
+  min.addEventListener('input', fromInputs);
+  if (hem) hem.addEventListener('change', fromInputs);
+  deg.addEventListener('change', () => show(cur));
+  min.addEventListener('change', () => show(cur));
+  show(value);
+  return wrap;
+}
+
+/** Número con unidad (metros, minutos de arco…) y deslizador. */
+function numberField(def, value, symbol, onChange) {
+  const id = 'p-' + def.k;
+  const wrap = el('div', 'field');
+  wrap.innerHTML = `
+    <label class="flabel" for="${id}-n">${esc(def.label)}${symbol ? ` <span class="sym">(${esc(symbol)})</span>` : ''}</label>
+    <div class="dmrow">
+      <input type="number" id="${id}-n" class="wide" inputmode="decimal" min="${def.min}" max="${def.max}" step="${def.step || 1}">
+      <span class="unit">${esc(def.unit || '')}</span>
+    </div>
+    <input type="range" id="${id}-r" min="${def.min}" max="${def.max}" step="${def.step || 1}" aria-label="${esc(def.label)}">
+    ${def.help ? `<p class="help">${esc(def.help)}</p>` : ''}`;
+  const inp = wrap.querySelector(`#${id}-n`), rng = wrap.querySelector(`#${id}-r`);
+  let cur = value;
+  const show = (v) => { inp.value = v; rng.value = v; };
+  rng.addEventListener('input', () => { cur = parseFloat(rng.value); inp.value = cur; onChange(cur); });
+  inp.addEventListener('input', () => {
+    const v = parseFloat(String(inp.value).replace(',', '.'));
+    if (Number.isFinite(v)) { cur = clamp(v, def.min, def.max); rng.value = cur; onChange(cur); }
+  });
+  inp.addEventListener('change', () => show(cur));
+  show(value);
+  return wrap;
+}
+
+/** Fecha del año (día 0 = 1 de enero): mes, día y deslizador. */
+function dayField(def, value, onChange) {
+  const id = 'p-' + def.k;
+  const wrap = el('div', 'field');
+  wrap.innerHTML = `
+    <label class="flabel" for="${id}-day">${esc(def.label)}: <span class="dateout"></span></label>
+    <div class="dmrow">
+      <input type="number" id="${id}-day" inputmode="numeric" min="1" max="31" step="1" aria-label="Día del mes">
+      <select id="${id}-mon" aria-label="Mes">${MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join('')}</select>
+    </div>
+    <input type="range" id="${id}-r" min="${def.min}" max="${def.max}" step="1" aria-label="${esc(def.label)}">
+    ${def.help ? `<p class="help">${esc(def.help)}</p>` : ''}`;
+  const day = wrap.querySelector(`#${id}-day`), mon = wrap.querySelector(`#${id}-mon`);
+  const rng = wrap.querySelector(`#${id}-r`), out = wrap.querySelector('.dateout');
+  const show = (i) => {
+    const d = dateFromIndex(i);
+    day.value = d.getUTCDate();
+    mon.value = d.getUTCMonth();
+    rng.value = i;
+    out.textContent = fDate(d);
+  };
+  rng.addEventListener('input', () => { const i = parseInt(rng.value, 10); show(i); onChange(i); });
+  const fromInputs = () => {
+    const m = parseInt(mon.value, 10);
+    const maxDay = new Date(Date.UTC(2026, m + 1, 0)).getUTCDate();
+    const d = clamp(parseInt(day.value, 10) || 1, 1, maxDay);
+    const i = clamp(dayIndex(m, d), def.min, def.max);
+    rng.value = i;
+    out.textContent = fDate(dateFromIndex(i));
+    onChange(i);
+  };
+  day.addEventListener('input', fromInputs);
+  mon.addEventListener('change', fromInputs);
+  show(value);
+  return wrap;
+}
+
+/** Grupo de botones excluyentes. options: [[valor, texto], …] */
+function segGroup(label, options, current, onPick) {
+  const f = el('div', 'field');
+  f.appendChild(el('span', 'sublabel', esc(label)));
+  const g = el('div', 'seg');
+  g.setAttribute('role', 'group');
+  g.setAttribute('aria-label', label);
+  for (const [v, t, disabled] of options) {
+    const b = el('button', null, esc(t));
+    b.type = 'button';
+    b.disabled = !!disabled;
+    b.setAttribute('aria-pressed', String(v === current));
+    b.addEventListener('click', () => {
+      [...g.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      onPick(v);
+    });
+    g.appendChild(b);
+  }
+  f.appendChild(g);
+  return f;
+}
+
+function checkRow(label, checked, onChange, id) {
+  const l = el('label', 'check');
+  l.innerHTML = `<input type="checkbox"${id ? ` id="${id}"` : ''}><span>${esc(label)}</span>`;
+  const c = l.querySelector('input');
+  c.checked = !!checked;
+  c.addEventListener('change', () => onChange(c.checked));
+  return l;
+}
+
+/** Deslizador simple con valor visible (vista, duración…). */
+function sliderRow(id, label, min, max, step, value, fmt, onChange) {
+  const f = el('div', 'field');
+  f.innerHTML = `<label class="flabel" for="${id}">${esc(label)}: <output for="${id}">${esc(fmt(value))}</output></label>
+    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}">`;
+  const r = f.querySelector('input'), o = f.querySelector('output');
+  r.value = value;
+  r.addEventListener('input', () => { const v = parseFloat(r.value); o.textContent = fmt(v); onChange(v); });
+  f.set = (v) => { r.value = v; o.textContent = fmt(v); };
+  return f;
+}
+
+const fmtDeg = (v) => `${fNum(v, 0)}°`;
+
+return { el, angleField, numberField, dayField, segGroup, checkRow, sliderRow, esc, fmtDeg };
+})();
+
+// src/main.js
+const __m22 = (function () {
+// Interfaz de la aplicación. Todo el estado vive en `state` (ver core/state.js);
+// cada cambio llama a render() y a commit() (historial para deshacer + autoguardado).
+
+const { FIGURES, GROUPS, byId } = __m15;
+const { renderFigure } = __m16;
+const { sanitizeState, defaultFigureState, STORAGE_KEY, STATE_VERSION } = __m17;
+const { NOTATION } = __m1;
+const { clamp, ease } = __m0;
+const { saveFile, saveMessage, storage } = __m18;
+const { svgToCanvas, canvasToBlob, recordVideo, videoMime } = __m19;
+const { makeZip } = __m20;
+const { el, esc, angleField, numberField, dayField, segGroup, checkRow, sliderRow, fmtDeg } = __m21;
+
+const $ = (id) => document.getElementById(id);
+
+// ---------- estado e historial ----------
+let state = loadState();
+let last = null; // último resultado de renderFigure
+let anim = null; // animación o grabación en curso
+const hist = { past: [], future: [], last: JSON.stringify(state), timer: 0 };
+
+function loadState() {
+  let raw = null;
+  try { raw = JSON.parse(storage.get(STORAGE_KEY) || 'null'); } catch { raw = null; }
+  return sanitizeState(raw, FIGURES);
+}
+const fig = () => byId(state.figure);
+const fst = () => state.figures[state.figure];
+
+function commit(now = false) {
+  clearTimeout(hist.timer);
+  const run = () => {
+    const s = JSON.stringify(state);
+    if (s === hist.last) return;
+    hist.past.push(hist.last);
+    if (hist.past.length > 120) hist.past.shift();
+    hist.future.length = 0;
+    hist.last = s;
+    storage.set(STORAGE_KEY, s);
+    updateUndo();
+  };
+  if (now) run(); else hist.timer = setTimeout(run, 350);
+}
+
+function restore(json) {
+  state = JSON.parse(json);
+  hist.last = json;
+  storage.set(STORAGE_KEY, json);
+  rebuild();
+}
+function undo() {
+  commit(true);
+  if (!hist.past.length) return;
+  hist.future.push(hist.last);
+  restore(hist.past.pop());
+  toast('Cambio deshecho');
+}
+function redo() {
+  commit(true);
+  if (!hist.future.length) return;
+  hist.past.push(hist.last);
+  restore(hist.future.pop());
+  toast('Cambio rehecho');
+}
+function updateUndo() {
+  $('bUndo').disabled = !hist.past.length && JSON.stringify(state) === hist.last;
+  $('bRedo').disabled = !hist.future.length;
+}
+
+// ---------- dibujo ----------
+function renderMain(extra = {}) {
+  const s = fst();
+  const reveal = s.reveal ? { upto: s.reveal, frac: 1 } : null;
+  return renderFigure(fig(), s, state.style, { reveal, idPrefix: 'm', ...extra });
+}
+
+function render() {
+  last = renderMain();
+  if (fst().reveal > last.steps.length) { fst().reveal = 0; last = renderMain(); }
+  if (!anim) $('sheet').innerHTML = last.svg;
+  updateDatos();
+  updatePasos();
+  updateHint();
+  if ($('txtbox').open) buildTextList();
+  updateUndo();
+}
+
+function change(mutator, { panel = false } = {}) {
+  mutator();
+  if (panel) buildPanel();
+  render();
+  commit();
+}
+
+// ---------- mensajes ----------
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ---------- panel izquierdo ----------
+function buildPicker() {
+  const box = $('picker');
+  box.innerHTML = '';
+  const style = { ...state.style, labels: false, weight: 'g', mode: 'color' };
+  for (const g of GROUPS) {
+    const figs = FIGURES.filter((f) => f.group === g.id);
+    if (!figs.length) continue;
+    box.appendChild(el('h3', 'group', esc(g.name)));
+    const grid = el('div', 'tpls');
+    for (const f of figs) {
+      const b = el('button', 'tpl');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(f.id === state.figure));
+      b.title = f.desc;
+      const thumb = renderFigure(f, defaultFigureState(f), style, { idPrefix: 't' + f.id, noCaption: true }).svg;
+      b.innerHTML = `<span class="thumb" aria-hidden="true">${thumb}</span><span class="tname">${esc(f.name)}</span>`;
+      b.addEventListener('click', () => {
+        if (state.figure === f.id) return;
+        stopAnim(false);
+        state.figure = f.id;
+        [...box.querySelectorAll('.tpl')].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        buildPanel();
+        buildPanes();
+        render();
+        commit();
+      });
+      grid.appendChild(b);
+    }
+    box.appendChild(grid);
+  }
+}
+
+function buildPanel() {
+  const f = fig(), s = fst(), N = NOTATION[state.style.notation];
+  $('figdesc').textContent = f.desc;
+
+  const P = $('params');
+  P.innerHTML = '';
+  for (const def of f.params) {
+    const sym = def.sym ? N[def.sym] : '';
+    const onChange = (v) => { s.params[def.k] = v; render(); commit(); };
+    const node = def.kind === 'number' ? numberField(def, s.params[def.k], sym, onChange)
+      : def.kind === 'day' ? dayField(def, s.params[def.k], onChange)
+      : angleField(def, s.params[def.k], sym, onChange);
+    P.appendChild(node);
+  }
+  if (f.astro) {
+    P.appendChild(segGroup('Cómo se dibuja el astro', [['sol', 'Sol'], ['estrella', 'Estrella'], ['punto', 'Punto']], s.astroType, (v) => {
+      change(() => {
+        const generic = ['Sol', 'Astro', 'Estrella', ''];
+        s.astroType = v;
+        if (generic.includes(s.astroName)) s.astroName = v === 'sol' ? 'Sol' : f.astro.name === 'Sol' ? 'Astro' : f.astro.name;
+        $('astroName').value = s.astroName;
+      });
+    }));
+    const nf = el('div', 'field');
+    nf.innerHTML = `<label class="flabel" for="astroName">Nombre junto al astro</label><input type="text" id="astroName" placeholder="Por ejemplo: Sirio">`;
+    const inp = nf.querySelector('input');
+    inp.value = s.astroName;
+    inp.addEventListener('input', () => { s.astroName = inp.value; render(); commit(); });
+    P.appendChild(nf);
+  }
+  if (f.view) {
+    P.appendChild(sliderRow('viewYaw', 'Girar la esfera', -180, 180, 1, s.view.yaw, fmtDeg, (v) => { s.view.yaw = v; render(); commit(); }));
+    P.appendChild(sliderRow('viewPitch', 'Inclinar la vista', -60, 89, 1, s.view.pitch, fmtDeg, (v) => { s.view.pitch = v; render(); commit(); }));
+  }
+
+  const O = $('opts');
+  O.innerHTML = '';
+  for (const [k, label] of f.opts) O.appendChild(checkRow(label, s.opts[k], (c) => change(() => { s.opts[k] = c; })));
+
+  const cap = $('caption');
+  cap.value = s.caption;
+  cap.placeholder = 'Por ejemplo: Figura 1. ' + f.caption;
+}
+
+function buildTextList() {
+  const box = $('txtlist'), s = fst();
+  box.innerHTML = '';
+  for (const L of last.labels) {
+    const f = el('div', 'field tight');
+    const inp = el('input');
+    inp.type = 'text';
+    inp.id = 'txt-' + L.id;
+    inp.placeholder = L.text;
+    inp.value = s.texts[L.id] || '';
+    inp.setAttribute('aria-label', 'Texto del rótulo ' + L.text);
+    inp.addEventListener('input', () => {
+      if (inp.value) s.texts[L.id] = inp.value; else delete s.texts[L.id];
+      last = renderMain();
+      $('sheet').innerHTML = last.svg;
+      commit();
+    });
+    f.appendChild(inp);
+    box.appendChild(f);
+  }
+  const b = el('button', 'btn quiet', 'Volver a los textos automáticos');
+  b.type = 'button';
+  b.addEventListener('click', () => change(() => { s.texts = {}; }, { panel: false }) || buildTextList());
+  box.appendChild(b);
+}
+
+const PRESETS = {
+  ejemplo: { mode: 'bn', font: 'sans', words: true, values: false, arrows: true, curved: true, hidden: false, labels: true },
+  tecnico: { mode: 'color', font: 'serif', words: false, values: true, arrows: true, curved: false, hidden: true, labels: true },
+  imprenta: { mode: 'bn', font: 'serif', words: false, values: true, arrows: true, curved: false, hidden: true, labels: true, weight: 'g' },
+};
+
+function buildAspect() {
+  const A = $('aspect'), st = state.style;
+  A.innerHTML = '';
+  const pr = el('div', 'field');
+  pr.appendChild(el('span', 'sublabel', 'Estilos rápidos'));
+  const pg = el('div', 'seg');
+  for (const [k, t] of [['ejemplo', 'Rótulos con palabras, en blanco y negro'], ['tecnico', 'Técnico, en color'], ['imprenta', 'Imprenta en blanco y negro']]) {
+    const b = el('button', null, esc(t));
+    b.type = 'button';
+    b.addEventListener('click', () => {
+      change(() => {
+        Object.assign(state.style, PRESETS[k]);
+        if (k === 'ejemplo') state.figures.horizontales.astroType = 'punto';
+      }, { panel: true });
+      buildAspect();
+      toast('Estilo aplicado');
+    });
+    pg.appendChild(b);
+  }
+  pr.appendChild(pg);
+  A.appendChild(pr);
+  const seg = (label, key, opts, panel = false) => A.appendChild(segGroup(label, opts, st[key], (v) => change(() => { st[key] = v; }, { panel })));
+  seg('Impresión', 'mode', [['color', 'En color'], ['bn', 'Blanco y negro']]);
+  seg('Tamaño de letra', 'size', [['s', 'Pequeña'], ['m', 'Mediana'], ['l', 'Grande']]);
+  seg('Grosor de las líneas', 'weight', [['f', 'Fino'], ['n', 'Normal'], ['g', 'Grueso']]);
+  seg('Tipo de letra', 'font', [['serif', 'Clásica, de libro'], ['sans', 'Sin remates']]);
+  seg('Rótulos de los arcos', 'words', [[false, 'Símbolos (a, Z, φ…)'], [true, 'Palabras (Altura, Azimut…)']]);
+  seg('Notación de los símbolos', 'notation', [['intl', 'φ λ δ t'], ['esp', 'l L d hL (española)']], true);
+  seg('Distancias', 'dist', [['mi', 'Millas'], ['km', 'Kilómetros']]);
+  for (const [key, label] of [['labels', 'Mostrar rótulos'], ['values', 'Mostrar valores en grados'], ['curved', 'Rótulos que siguen las curvas'], ['arrows', 'Flechas en los arcos'], ['hidden', 'Líneas ocultas a trazos']]) {
+    A.appendChild(checkRow(label, st[key], (c) => change(() => { st[key] = c; })));
+  }
+}
+
+// ---------- pestañas de la derecha ----------
+function buildPanes() {
+  buildAnimPane();
+  $('pane-pasos').dataset.sig = '';
+  $('pane-datos').dataset.sig = '';
+}
+
+function updateDatos() {
+  const pane = $('pane-datos'), f = fig(), s = fst();
+  const rows = f.compute ? f.compute(s.params, s.opts, { dist: state.style.dist }) : [];
+  const html = `<table class="datos"><tbody>${rows.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table>
+    <div class="row-actions"><button type="button" class="btn quiet" id="bCopy">Copiar los datos</button></div>
+    <p class="help">Cálculos hechos con los valores de la figura, útiles para comprobar el texto del libro. No sustituyen al almanaque ni a las tablas.</p>`;
+  if (pane.dataset.sig === html) return;
+  pane.dataset.sig = html;
+  pane.innerHTML = html;
+  $('bCopy').addEventListener('click', () => {
+    const text = rows.map(([k, v]) => `${k}: ${v}`).join('\n');
+    try {
+      navigator.clipboard.writeText(text).then(() => toast('Datos copiados'), () => toast('No se pudo copiar: selecciona la tabla y cópiala'));
+    } catch { toast('No se pudo copiar: selecciona la tabla y cópiala'); }
+  });
+}
+
+function updatePasos() {
+  const pane = $('pane-pasos'), s = fst(), steps = last.steps;
+  const sig = JSON.stringify([state.figure, steps, s.reveal, state.style.stepBanner]);
+  if (pane.dataset.sig === sig) return;
+  pane.dataset.sig = sig;
+  pane.innerHTML = `
+    <p class="lead">Esta figura se construye en ${steps.length} pasos. Elige hasta qué paso quieres verla: las descargas guardan lo que ves.</p>
+    <ol class="steps">${steps.map((st) => `<li><button type="button" data-step="${st.n}" aria-pressed="${s.reveal === st.n}">${esc(st.title)}</button></li>`).join('')}</ol>
+    <div class="row-actions">
+      <button type="button" class="btn quiet" id="bPrev">Paso anterior</button>
+      <button type="button" class="btn quiet" id="bNext">Paso siguiente</button>
+      <button type="button" class="btn quiet" id="bFull" aria-pressed="${!s.reveal}">Figura completa</button>
+    </div>
+    <div id="bannerRow"></div>
+    <div class="row-actions"><button type="button" class="btn" id="bZip">Descargar todos los pasos (ZIP con un PNG por paso)</button></div>`;
+  const setReveal = (n) => change(() => { s.reveal = n; });
+  pane.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => setReveal(+b.dataset.step)));
+  $('bPrev').addEventListener('click', () => setReveal(s.reveal === 0 ? Math.max(1, steps.length - 1) : Math.max(1, s.reveal - 1)));
+  $('bNext').addEventListener('click', () => setReveal(s.reveal === 0 ? 1 : s.reveal >= steps.length ? 0 : s.reveal + 1));
+  $('bFull').addEventListener('click', () => setReveal(0));
+  $('bannerRow').appendChild(checkRow('Escribir el título del paso en la imagen', state.style.stepBanner, (c) => change(() => { state.style.stepBanner = c; })));
+  $('bZip').addEventListener('click', exportSteps);
+}
+
+function updateHint() {
+  const f = fig(), s = fst();
+  let h = f.view ? 'Arrastra la esfera para girarla. Arrastra un rótulo para moverlo.' : 'Arrastra un rótulo para moverlo.';
+  if (s.reveal) h += ` Ahora ves hasta el paso ${s.reveal} de ${last.steps.length}.`;
+  $('hint').textContent = h;
+}
+
+function buildAnimPane() {
+  const pane = $('pane-anim'), f = fig(), a = state.anim;
+  if (a.mode === 'girar' && !f.view) a.mode = 'pasos';
+  if (!f.params.some((p) => p.k === a.param)) {
+    const pre = f.animations?.[0];
+    a.param = pre ? pre.param : f.params[0].k;
+    if (pre) { a.from = pre.from; a.to = pre.to; } else { a.from = f.params[0].min; a.to = f.params[0].max; }
+  }
+  pane.innerHTML = '';
+  pane.appendChild(segGroup('Qué se anima', [['pasos', 'Construir la figura paso a paso'], ['girar', 'Girar la esfera', !f.view], ['valor', 'Cambiar un valor']], a.mode, (v) => {
+    state.anim.mode = v; commit(); buildAnimPane();
+  }));
+  if (a.mode === 'valor') {
+    const box = el('div', 'field');
+    const opts = f.params.map((p) => `<option value="${p.k}"${p.k === a.param ? ' selected' : ''}>${esc(p.label)}</option>`).join('');
+    const def = f.params.find((p) => p.k === a.param);
+    const unit = def.kind === 'number' ? def.unit || '' : def.kind === 'day' ? 'días' : '°';
+    box.innerHTML = `
+      <label class="flabel" for="animParam">Valor que cambia</label>
+      <select id="animParam">${opts}</select>
+      <div class="dmrow spaced">
+        <label for="animFrom">Desde</label><input type="number" id="animFrom" step="0.5" class="wide">
+        <label for="animTo">hasta</label><input type="number" id="animTo" step="0.5" class="wide"><span class="unit">${esc(unit)}</span>
+      </div>`;
+    pane.appendChild(box);
+    const sel = box.querySelector('#animParam'), fr = box.querySelector('#animFrom'), to = box.querySelector('#animTo');
+    fr.value = a.from; to.value = a.to;
+    sel.addEventListener('change', () => {
+      const d = f.params.find((p) => p.k === sel.value);
+      a.param = d.k; a.from = d.min; a.to = d.max; commit(); buildAnimPane();
+    });
+    // La sugerencia que coincide con la animación actual queda resaltada.
+    const presBtns = [];
+    const markPreset = () => presBtns.forEach(([b, pa]) => b.setAttribute('aria-pressed', String(pa.param === a.param && pa.from === a.from && pa.to === a.to)));
+    const num = (inp, key) => inp.addEventListener('input', () => { const v = parseFloat(inp.value); if (Number.isFinite(v)) { a[key] = v; commit(); markPreset(); } });
+    num(fr, 'from'); num(to, 'to');
+    if (f.animations?.length) {
+      const pres = el('div', 'seg');
+      pres.setAttribute('aria-label', 'Animaciones sugeridas');
+      for (const pa of f.animations) {
+        const b = el('button', null, esc(pa.label));
+        b.type = 'button';
+        b.addEventListener('click', () => { Object.assign(a, { param: pa.param, from: pa.from, to: pa.to }); commit(); buildAnimPane(); });
+        presBtns.push([b, pa]);
+        pres.appendChild(b);
+      }
+      markPreset();
+      const wrap = el('div', 'field');
+      wrap.appendChild(el('span', 'sublabel', 'Sugerencias'));
+      wrap.appendChild(pres);
+      pane.appendChild(wrap);
+    }
+  }
+  pane.appendChild(sliderRow('animDur', 'Duración', 3, 30, 1, a.duration, (v) => `${v} s`, (v) => { a.duration = v; commit(); }));
+  const mime = videoMime();
+  const row = el('div', 'row-actions');
+  row.innerHTML = `
+    <button type="button" class="btn primary" id="bPlay">Reproducir</button>
+    <button type="button" class="btn" id="bStop" disabled>Detener</button>
+    <button type="button" class="btn" id="bRec"${mime ? '' : ' disabled'}>Grabar vídeo</button>`;
+  pane.appendChild(row);
+  const prog = el('progress');
+  prog.id = 'animProg'; prog.max = 1; prog.value = 0;
+  prog.setAttribute('aria-label', 'Progreso de la animación');
+  pane.appendChild(prog);
+  pane.appendChild(el('p', 'help', mime
+    ? `El vídeo (${mime.startsWith('video/mp4') ? 'MP4' : 'WebM'}) se graba mientras se reproduce, así que tarda lo mismo que la animación. Incluye el pie de figura y, en el modo paso a paso, el título de cada paso si lo tienes activado.`
+    : 'Este navegador no permite grabar vídeo. Puedes reproducir la animación o descargar los pasos como imágenes.'));
+  $('bPlay').addEventListener('click', play);
+  $('bStop').addEventListener('click', () => stopAnim(true));
+  $('bRec').addEventListener('click', record);
+}
+
+// ---------- animación ----------
+function frameExtra(t) {
+  const a = state.anim, f = fig(), s = fst();
+  const u = clamp(t / a.duration, 0, 1);
+  if (a.mode === 'pasos') {
+    const n = Math.max(1, last.steps.length);
+    const uu = Math.min(1, u / 0.9);
+    let k = Math.min(n, Math.floor(uu * n) + 1);
+    let fr = uu * n - (k - 1);
+    if (uu >= 1) { k = n; fr = 1; }
+    return { reveal: { upto: k, frac: ease(clamp(fr / 0.8, 0, 1)) } };
+  }
+  if (a.mode === 'girar' && f.view) {
+    let yaw = s.view.yaw + 360 * u;
+    yaw = ((yaw + 180) % 360 + 360) % 360 - 180;
+    return { viewOverride: { yaw, pitch: s.view.pitch } };
+  }
+  const def = f.params.find((p) => p.k === a.param) || f.params[0];
+  return { paramsOverride: { [def.k]: clamp(a.from + (a.to - a.from) * u, def.min, def.max) } };
+}
+
+function setAnimUi(running) {
+  if (!$('bPlay')) return;
+  $('bPlay').disabled = running;
+  $('bRec').disabled = running || !videoMime();
+  $('bStop').disabled = !running;
+}
+
+function play() {
+  stopAnim(false);
+  const t0 = performance.now();
+  anim = { raf: 0 };
+  setAnimUi(true);
+  const D = state.anim.duration;
+  const tick = () => {
+    if (!anim) return;
+    const t = (performance.now() - t0) / 1000;
+    $('sheet').innerHTML = renderMain(frameExtra(Math.min(t, D))).svg;
+    const p = $('animProg');
+    if (p) p.value = Math.min(1, t / D);
+    if (t >= D + 0.8) { stopAnim(true); return; }
+    anim.raf = requestAnimationFrame(tick);
+  };
+  anim.raf = requestAnimationFrame(tick);
+}
+
+function stopAnim(redraw = true) {
+  if (!anim) return;
+  cancelAnimationFrame(anim.raf);
+  if (anim.ctrl) anim.ctrl.abort();
+  anim = null;
+  setAnimUi(false);
+  if (redraw) render();
+}
+
+async function record() {
+  stopAnim(false);
+  const ctrl = new AbortController();
+  anim = { raf: 0, ctrl };
+  setAnimUi(true);
+  toast('Grabando el vídeo…');
+  const first = renderMain(frameExtra(0));
+  try {
+    const { blob, ext } = await recordVideo({
+      duration: state.anim.duration,
+      width: first.width,
+      height: first.height,
+      scale: 1.5,
+      signal: ctrl.signal,
+      frameAt: (t) => { const svg = renderMain(frameExtra(t)).svg; $('sheet').innerHTML = svg; return svg; },
+      onProgress: (p) => { const el2 = $('animProg'); if (el2) el2.value = p; },
+    });
+    if (ctrl.signal.aborted) toast('Grabación detenida');
+    else toast(saveMessage(await saveFile(`animacion-${fig().id}.${ext}`, blob), 'Vídeo guardado'));
+  } catch {
+    toast('No se pudo grabar el vídeo en este navegador');
+  } finally {
+    anim = null;
+    setAnimUi(false);
+    render();
+  }
+}
+
+// ---------- exportar ----------
+const fileBase = () => `figura-${fig().id}${fst().reveal ? '-paso-' + fst().reveal : ''}`;
+
+async function exportPng() {
+  const btn = $('bPng');
+  btn.disabled = true;
+  try {
+    const r = renderMain({ transparent: state.export.transparent });
+    const c = await svgToCanvas(r.svg, r.width, r.height, state.export.scale, state.export.transparent);
+    const blob = await canvasToBlob(c);
+    toast(saveMessage(await saveFile(fileBase() + '.png', blob), 'Imagen guardada'));
+  } catch {
+    toast('No se pudo crear la imagen');
+  } finally { btn.disabled = false; }
+}
+
+async function exportSvg() {
+  const r = renderMain({ transparent: state.export.transparent });
+  toast(saveMessage(await saveFile(fileBase() + '.svg', '<?xml version="1.0" encoding="UTF-8"?>\n' + r.svg), 'SVG guardado'));
+}
+
+async function exportSteps() {
+  const btn = $('bZip');
+  if (btn) btn.disabled = true;
+  toast('Preparando las imágenes de cada paso…');
+  try {
+    const files = [];
+    for (const st of last.steps) {
+      const r = renderMain({ reveal: { upto: st.n, frac: 1 }, transparent: state.export.transparent });
+      const c = await svgToCanvas(r.svg, r.width, r.height, state.export.scale, state.export.transparent);
+      const b = await canvasToBlob(c);
+      files.push({ name: `figura-${fig().id}-paso-${st.n}.png`, data: new Uint8Array(await b.arrayBuffer()) });
+    }
+    toast(saveMessage(await saveFile(`figura-${fig().id}-pasos.zip`, makeZip(files)), 'Pasos guardados'));
+  } catch {
+    toast('No se pudieron preparar los pasos');
+  } finally { if (btn) btn.disabled = false; }
+}
+
+async function exportJson() {
+  commit(true);
+  const json = JSON.stringify({ ...state, version: STATE_VERSION }, null, 2);
+  toast(saveMessage(await saveFile('figuras-navegacion-ajustes.json', json), 'Ajustes guardados'));
+}
+
+function importJson(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const raw = JSON.parse(String(reader.result));
+      if (!raw || raw.version !== STATE_VERSION) { toast('Ese archivo no contiene ajustes de esta aplicación'); return; }
+      commit(true);
+      state = sanitizeState(raw, FIGURES);
+      rebuild();
+      commit(true);
+      toast('Ajustes cargados');
+    } catch { toast('No se pudo leer el archivo: debe ser un .json guardado desde aquí'); }
+  };
+  reader.readAsText(file);
+}
+
+// ---------- arrastrar: girar la esfera o mover rótulos ----------
+function setupDrag() {
+  const sheet = $('sheet');
+  let drag = null;
+  sheet.addEventListener('pointerdown', (e) => {
+    if (anim) return;
+    const svg = sheet.querySelector('svg');
+    if (!svg) return;
+    const scale = svg.viewBox.baseVal.width / svg.getBoundingClientRect().width;
+    const t = e.target.closest && e.target.closest('[data-lid]');
+    const s = fst();
+    if (t && state.style.labels) {
+      const id = t.getAttribute('data-lid');
+      const o = s.offsets[id] || { dx: 0, dy: 0 };
+      drag = { mode: 'label', id, x0: e.clientX, y0: e.clientY, o0: { ...o }, scale };
+    } else if (s.view) {
+      drag = { mode: 'rot', x0: e.clientX, y0: e.clientY, yaw0: s.view.yaw, pitch0: s.view.pitch };
+    } else return;
+    sheet.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  sheet.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const s = fst();
+    const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+    if (drag.mode === 'label') {
+      s.offsets[drag.id] = { dx: drag.o0.dx + dx * drag.scale, dy: drag.o0.dy + dy * drag.scale };
+    } else {
+      let y = drag.yaw0 - dx * 0.45;
+      y = ((y + 180) % 360 + 360) % 360 - 180;
+      s.view.yaw = Math.round(y);
+      s.view.pitch = Math.round(clamp(drag.pitch0 + dy * 0.35, -60, 89));
+      $('viewYaw')?.closest('.field')?.set?.(s.view.yaw);
+      $('viewPitch')?.closest('.field')?.set?.(s.view.pitch);
+    }
+    last = renderMain();
+    sheet.innerHTML = last.svg;
+  });
+  const end = () => { if (drag) { drag = null; render(); commit(); } };
+  sheet.addEventListener('pointerup', end);
+  sheet.addEventListener('pointercancel', end);
+}
+
+// ---------- pestañas ----------
+function setupTabs() {
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const select = (tab) => {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    }
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      select(n);
+      n.focus();
+    });
+  });
+  select(tabs[0]);
+}
+
+// ---------- arranque ----------
+function rebuild() {
+  stopAnim(false);
+  buildPicker();
+  buildPanel();
+  buildAspect();
+  buildPanes();
+  $('pngRes').value = String(state.export.scale);
+  $('pngTr').checked = state.export.transparent;
+  render();
+}
+
+function init() {
+  $('caption').addEventListener('input', (e) => { fst().caption = e.target.value; render(); commit(); });
+  $('txtbox').addEventListener('toggle', () => { if ($('txtbox').open) buildTextList(); });
+  $('bPng').addEventListener('click', exportPng);
+  $('bSvg').addEventListener('click', exportSvg);
+  $('pngRes').addEventListener('change', (e) => { state.export.scale = +e.target.value; commit(); });
+  $('pngTr').addEventListener('change', (e) => { state.export.transparent = e.target.checked; commit(); });
+  $('bUndo').addEventListener('click', undo);
+  $('bRedo').addEventListener('click', redo);
+  $('bSaveJson').addEventListener('click', () => { $('more').open = false; exportJson(); });
+  $('bLoadJson').addEventListener('click', () => { $('more').open = false; $('fileJson').click(); });
+  $('fileJson').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) importJson(f); e.target.value = ''; });
+  $('bLabels').addEventListener('click', () => { $('more').open = false; change(() => { fst().offsets = {}; }); toast('Rótulos en su sitio original'); });
+  $('bReset').addEventListener('click', () => {
+    $('more').open = false;
+    change(() => { const cap = fst().caption; state.figures[state.figure] = defaultFigureState(fig()); fst().caption = cap; }, { panel: true });
+    toast('Valores iniciales de esta figura');
+  });
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+    else if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+    else if (e.key === 'Escape' && anim) stopAnim(true);
+  });
+  document.addEventListener('click', (e) => { const m = $('more'); if (m.open && !m.contains(e.target)) m.open = false; });
+  setupDrag();
+  setupTabs();
+  rebuild();
+  hist.last = JSON.stringify(state);
+  updateUndo();
+}
+
+init();
+
+return {  };
+})();
+})();
+</script>
+</body>
+</html>
